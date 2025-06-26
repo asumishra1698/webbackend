@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import User from "../../models/auth/authModal";
 import { Request, Response, NextFunction } from "express";
@@ -145,20 +146,111 @@ export const login = async (
   }
 };
 
+export const requestEmailLoginOtp = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { email, role } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+    if (!role || user.role !== role) {
+      res.status(403).json({ message: "Role mismatch or not provided" });
+      return;
+    }
+    const otp = Math.floor(1000 + Math.random() * 9000).toString();
+    user.otp = otp;
+    user.otpExpiry = Date.now() + 10 * 60 * 1000;
+    await user.save();
+
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: user.email,
+      subject: "Your Login OTP",
+      text: `Your OTP for login is: ${otp}`,
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    res.json({ message: "OTP sent to email" });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const verifyEmailLoginOtp = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { email, otp } = req.body;
+    const user = await User.findOne({
+      email,
+      otp,
+      otpExpiry: { $gt: Date.now() },
+    });
+    if (!user) {
+      res.status(400).json({ message: "Invalid or expired OTP" });
+      return;
+    }
+
+    user.otp = undefined;
+    user.otpExpiry = undefined;
+    await user.save();
+
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET as string,
+      { expiresIn: "7d" }
+    );
+
+    res.json({
+      message: "Login successful",
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        mobile: user.mobile,
+        role: user.role,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const forgotpassword = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { email } = req.body;
+    const { email, role } = req.body;
     const user = await User.findOne({ email });
     if (!user) {
       res.status(404).json({ message: "User not found" });
       return;
     }
+    if (!role || user.role !== role) {
+      res.status(403).json({ message: "Role mismatch or not provided" });
+      return;
+    }
 
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otp = Math.floor(1000 + Math.random() * 9000).toString();
     user.otp = otp;
     user.otpExpiry = Date.now() + 2 * 60 * 1000;
     await user.save();
@@ -272,6 +364,8 @@ export const getAllUsers = async (
 export default {
   register,
   login,
+  requestEmailLoginOtp,
+  verifyEmailLoginOtp,
   forgotpassword,
   resetpassword,
   getRole,
