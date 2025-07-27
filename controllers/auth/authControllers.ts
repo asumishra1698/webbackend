@@ -89,17 +89,14 @@ export const login = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { email, mobile, password, role } = req.body;
-
-    // Require at least one identifier
+    const { email, mobile, password, role } = req.body;    
     if ((!email && !mobile) || !password || !role) {
       res
         .status(400)
         .json({ message: "Email or mobile, password, and role are required" });
       return;
     }
-
-    // Find user by both email and mobile if both are provided, else by one
+    
     let user;
     if (email && mobile) {
       user = await User.findOne({ email, mobile });
@@ -131,14 +128,14 @@ export const login = async (
       { expiresIn: "7d" }
     );
     res.json({
-      message: "Login successful",
-      token,
+      message: "Login successful",      
       user: {
         id: user._id,
         name: user.name,
         email: user.email,
         mobile: user.mobile,
         role: user.role,
+        token,
       },
     });
   } catch (err) {
