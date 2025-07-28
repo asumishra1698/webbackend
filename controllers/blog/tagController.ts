@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import Tag from "../../models/blog/Tag";
+import BlogPost from "../../models/blog/BlogPost";
 import slugify from "slugify";
 
 const generateUniqueSlug = async (name: string): Promise<string> => {
@@ -75,18 +76,32 @@ export const updateTag = async (
   }
 };
 
+
+
+// ... baaki ka code ...
+
 export const deleteTag = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
-    const tag = await Tag.findByIdAndDelete(req.params.id);
+    const tagIdToDelete = req.params.id;
+
+    // 1. Saare posts se is tag ko remove karein
+    await BlogPost.updateMany(
+      { tags: tagIdToDelete },
+      { $pull: { tags: tagIdToDelete } }
+    );
+
+    // 2. Ab tag ko delete karein
+    const tag = await Tag.findByIdAndDelete(tagIdToDelete);
     if (!tag) {
       res.status(404).json({ message: "Tag not found" });
       return;
     }
-    res.json({ message: "Tag deleted successfully" });
+
+    res.json({ message: `Tag '${tag.name}' deleted successfully and removed from all posts.` });
   } catch (err) {
     next(err);
   }

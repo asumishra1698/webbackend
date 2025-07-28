@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import Category from "../../models/blog/Category";
+import BlogPost from "../../models/blog/BlogPost";
 import slugify from "slugify";
 
 const generateUniqueSlug = async (name: string): Promise<string> => {
@@ -87,12 +88,34 @@ export const deleteCategory = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const category = await Category.findByIdAndDelete(req.params.id);
+    const categoryIdToDelete = req.params.id;
+    const defaultCategory = await Category.findOne({ slug: "uncategorized" });
+    if (!defaultCategory) {
+      res.status(500).json({
+        message:
+          "Default category 'Uncategorized' not found. Please create it first.",
+      });
+      return;
+    }
+    if (categoryIdToDelete === defaultCategory.id.toString()) {
+      res.status(400).json({ message: "Cannot delete the default category." });
+      return;
+    }
+
+    await BlogPost.updateMany(
+      { category: categoryIdToDelete },
+      { $set: { category: defaultCategory.id } }
+    );
+
+    const category = await Category.findByIdAndDelete(categoryIdToDelete);
     if (!category) {
       res.status(404).json({ message: "Category not found" });
       return;
     }
-    res.json({ message: "Category deleted successfully" });
+
+    res.json({
+      message: `Category '${category.name}' deleted successfully. Associated posts moved to 'Uncategorized'.`,
+    });
   } catch (err) {
     next(err);
   }
