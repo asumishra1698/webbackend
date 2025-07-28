@@ -6,8 +6,11 @@ import path from "path";
 import connectDB from "./config/db";
 import errorHandler from "./middlewares/errorMiddleware";
 import authRoutes from "./routes/auth/authRoutes";
-import contactFormRoutes from "./routes/website/contactFormRoutes";
+import contactFormRoutes from "./routes/contact/contactFormRoutes";
 
+import blogPostRoutes from "./routes/blog/blogPostRoutes";
+import tagRoutes from "./routes/blog/tagRoutes";
+import categoryRoutes from "./routes/blog/categoryRoutes";
 
 dotenv.config();
 connectDB();
@@ -22,6 +25,12 @@ app.use(cors());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/contact", contactFormRoutes);
+
+// Blog Routes
+app.use("/api/blog/categories", categoryRoutes);
+app.use("/api/blog/tags", tagRoutes);
+app.use("/api/blog/posts", blogPostRoutes);
+
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;

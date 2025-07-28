@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import Contact from "../../models/website/contactFormModal";
+import Contact from "../../models/contact/contactFormModal";
 
 
 export const submitContactForm = async (
@@ -8,12 +8,12 @@ export const submitContactForm = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { name, number, email, message } = req.body;
-    if (!name || !number || !email || !message) {
+    const { name, number, email, message, city } = req.body;
+    if (!name || !number || !email || !message || !city) {
       res.status(400).json({ message: "All fields are required" });
       return;
     }
-    const contact = new Contact({ name, number, email, message });
+    const contact = new Contact({ name, number, email, message, city });
     await contact.save();
     res.status(201).json({ message: "Contact form submitted successfully" });
   } catch (err) {

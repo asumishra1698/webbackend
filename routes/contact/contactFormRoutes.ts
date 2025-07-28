@@ -2,7 +2,7 @@ import express from "express";
 import {
   submitContactForm,
   getAllContacts,
-} from "../../controllers/website/contactFormControllers";
+} from "../../controllers/contact/contactFormControllers";
 import { authenticate } from "../../middlewares/authMiddleware";
 
 const router = express.Router();
