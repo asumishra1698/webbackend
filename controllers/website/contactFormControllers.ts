@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import Contact from "../../models/website/contactFormModal";
 
-// Create new contact form entry
+
 export const submitContactForm = async (
   req: Request,
   res: Response,
@@ -21,7 +21,6 @@ export const submitContactForm = async (
   }
 };
 
-// ...existing code...
 export const getAllContacts = async (
   req: Request,
   res: Response,
@@ -31,10 +30,11 @@ export const getAllContacts = async (
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
     const search = req.query.search as string || "";
+    console.log("Search Term:", search);
 
     const query: any = {};
     if (search) {
-      const searchRegex = new RegExp(search, "i"); // Case-insensitive search
+      const searchRegex = new RegExp(search, "i");
       query.$or = [
         { name: searchRegex },
         { email: searchRegex },
