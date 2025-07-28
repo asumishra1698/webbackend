@@ -21,15 +21,44 @@ export const submitContactForm = async (
   }
 };
 
-// Get all contact form entries
+// ...existing code...
 export const getAllContacts = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
-    const contacts = await Contact.find();
-    res.json(contacts);
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const search = req.query.search as string || "";
+
+    const query: any = {};
+    if (search) {
+      const searchRegex = new RegExp(search, "i"); // Case-insensitive search
+      query.$or = [
+        { name: searchRegex },
+        { email: searchRegex },
+        { number: searchRegex },
+      ];
+    }
+
+    const skip = (page - 1) * limit;
+
+    const totalContacts = await Contact.countDocuments(query);
+    const contacts = await Contact.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    res.json({
+      contacts,
+      pagination: {
+        total: totalContacts,
+        page,
+        limit,
+        pages: Math.ceil(totalContacts / limit),
+      },
+    });
   } catch (err) {
     next(err);
   }
