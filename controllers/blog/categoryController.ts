@@ -54,11 +54,23 @@ export const updateCategory = async (
 ): Promise<void> => {
   try {
     const { name, parent } = req.body;
+    const updateData: { name?: string; slug?: string; parent?: any } = {};
+
+    if (name) {
+      updateData.name = name;
+      updateData.slug = await generateUniqueSlug(name);
+    }
+
+    if (parent !== undefined) {
+      updateData.parent = parent || null;
+    }
+
     const category = await Category.findByIdAndUpdate(
       req.params.id,
-      { name, parent: parent || null },
+      updateData,
       { new: true }
     );
+
     if (!category) {
       res.status(404).json({ message: "Category not found" });
       return;

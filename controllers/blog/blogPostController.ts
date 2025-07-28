@@ -136,9 +136,20 @@ export const updatePost = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const post = await BlogPost.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-    });
+    const { title, ...otherFields } = req.body;
+    const updateData: any = { ...otherFields };
+
+    if (title) {
+      updateData.title = title;
+      updateData.slug = await generateUniqueSlug(title);
+    }
+
+    const post = await BlogPost.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      { new: true }
+    );
+
     if (!post) {
       res.status(404).json({ message: "Blog post not found" });
       return;

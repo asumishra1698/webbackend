@@ -54,11 +54,17 @@ export const updateTag = async (
 ): Promise<void> => {
   try {
     const { name } = req.body;
-    const tag = await Tag.findByIdAndUpdate(
-      req.params.id,
-      { name },
-      { new: true }
-    );
+    const updateData: { name?: string; slug?: string } = {};
+
+    if (name) {
+      updateData.name = name;
+      updateData.slug = await generateUniqueSlug(name);
+    }
+
+    const tag = await Tag.findByIdAndUpdate(req.params.id, updateData, {
+      new: true,
+    });
+
     if (!tag) {
       res.status(404).json({ message: "Tag not found" });
       return;
