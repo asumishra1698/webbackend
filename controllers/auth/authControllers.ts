@@ -44,7 +44,7 @@ export const register = async (
         return;
       }
     }
-
+    
     if (email) {
       const existingEmail = await User.findOne({ email });
       if (existingEmail) {

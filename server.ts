@@ -6,6 +6,8 @@ import path from "path";
 import connectDB from "./config/db";
 import errorHandler from "./middlewares/errorMiddleware";
 import authRoutes from "./routes/auth/authRoutes";
+import contactFormRoutes from "./routes/website/contactFormRoutes";
+
 
 dotenv.config();
 connectDB();
@@ -19,6 +21,7 @@ app.use(express.json());
 app.use(cors());
 
 app.use("/api/auth", authRoutes);
+app.use("/api/contact", contactFormRoutes);
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
