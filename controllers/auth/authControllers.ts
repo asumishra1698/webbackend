@@ -127,8 +127,11 @@ export const login = async (
       process.env.JWT_SECRET as string,
       { expiresIn: "7d" }
     );
+    // @ts-ignore
+    user.token = token;
+    await user.save();
     res.json({
-      message: "Login successful",      
+      message: "Login successful",
       user: {
         id: user._id,
         name: user.name,
@@ -213,6 +216,10 @@ export const verifyEmailLoginOtp = async (
       process.env.JWT_SECRET as string,
       { expiresIn: "7d" }
     );
+
+    // @ts-ignore
+    user.token = token;
+    await user.save();
 
     res.json({
       message: "Login successful",

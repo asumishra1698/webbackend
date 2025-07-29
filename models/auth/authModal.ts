@@ -8,6 +8,7 @@ export interface IUser extends Document {
   role: string;
   otp?: string;
   otpExpiry?: number;
+  token?: string;
 }
 
 const UserSchema: Schema = new Schema({
@@ -18,6 +19,7 @@ const UserSchema: Schema = new Schema({
   role: { type: String, enum: ["superadmin", "admin", "customer" , "user"], default: "user" },
   otp: { type: String },
   otpExpiry: { type: Number },
+  token: { type: String },
 });
 
 const User = mongoose.model<IUser>("User", UserSchema);
