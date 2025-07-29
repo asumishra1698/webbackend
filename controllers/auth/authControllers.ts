@@ -351,7 +351,29 @@ export const getAllUsers = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const users = await User.find().select("-password -otp -otpExpiry").lean();
+    const { role, search, page = 1, limit = 10 } = req.query;
+    const query: any = {};
+    if (role) {
+      query.role = role;
+    }
+    if (search) {
+      const searchRegex = new RegExp(search as string, "i");
+      query.$or = [
+        { name: searchRegex },
+        { email: searchRegex },
+        { mobile: searchRegex },
+      ];
+    }
+    const pageNum = parseInt(page as string, 10);
+    const limitNum = parseInt(limit as string, 10);
+    const skip = (pageNum - 1) * limitNum;
+
+    const users = await User.find(query)
+      .select("-password -otp -otpExpiry -token")
+      .skip(skip)
+      .limit(limitNum)
+      .lean();
+    const totalUsers = await User.countDocuments(query);
     const usersWithId = users.map((u: any) => ({
       id: u._id,
       name: u.name,
@@ -359,7 +381,14 @@ export const getAllUsers = async (
       mobile: u.mobile,
       role: u.role,
     }));
-    res.json({ users: usersWithId });
+
+    res.json({
+      users: usersWithId,
+      totalUsers,
+      totalPages: Math.ceil(totalUsers / limitNum),
+      page: pageNum,
+      limit: limitNum,
+    });
   } catch (err) {
     next(err);
   }
