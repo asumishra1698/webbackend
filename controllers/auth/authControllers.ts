@@ -384,9 +384,9 @@ export const getAllUsers = async (
 
     res.json({
       users: usersWithId,
-      totalUsers,
-      totalPages: Math.ceil(totalUsers / limitNum),
+      totalUsers,      
       page: pageNum,
+      Pages: Math.ceil(totalUsers / limitNum),
       limit: limitNum,
     });
   } catch (err) {
