@@ -1,5 +1,6 @@
 import express from "express";
 import { authenticate } from "../../middlewares/authMiddleware";
+import { uploadBlogImages } from "../../middlewares/uploadMiddleware";
 import {
   createPost,
   getAllPosts,
@@ -10,7 +11,16 @@ import {
 
 const router = express.Router();
 
-router.post("/", authenticate, createPost);
+router.post(
+  "/",
+  authenticate,
+  uploadBlogImages.fields([
+    { name: "featuredImage", maxCount: 1 },
+    { name: "galleryImages", maxCount: 10 },
+  ]),
+  createPost
+);
+
 router.get("/", getAllPosts);
 router.get("/:slug", getPostBySlug);
 router.put("/:id", authenticate, updatePost);

@@ -25,8 +25,6 @@ export const createPost = async (
       description,
       category,
       tags,
-      featuredImage,
-      galleryImages,
       metaTitle,
       metaDescription,
       canonicalUrl,
@@ -34,13 +32,18 @@ export const createPost = async (
     } = req.body;
     const author = (req as any).user.id;
 
+    // Images from multer
+    const featuredImage = req.files && (req.files as any).featuredImage
+      ? (req.files as any).featuredImage[0].filename
+      : "";
+    const galleryImages = req.files && (req.files as any).galleryImages
+      ? (req.files as any).galleryImages.map((img: any) => img.filename)
+      : [];
+
     if (!title || !description || !category || !featuredImage) {
-      res
-        .status(400)
-        .json({
-          message:
-            "Title, description, category, and featuredImage are required.",
-        });
+      res.status(400).json({
+        message: "Title, description, category, and featuredImage are required.",
+      });
       return;
     }
 
