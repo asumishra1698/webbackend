@@ -21,9 +21,17 @@ router.post(
   createPost
 );
 
+router.put(
+  "/:id",
+  authenticate,
+  uploadBlogImages.fields([
+    { name: "featuredImage", maxCount: 1 },
+    { name: "galleryImages", maxCount: 10 },
+  ]),
+  updatePost
+);
 router.get("/", getAllPosts);
 router.get("/:slug", getPostBySlug);
-router.put("/:id", authenticate, updatePost);
 router.delete("/:id", authenticate, deletePost);
 
 export default router;
