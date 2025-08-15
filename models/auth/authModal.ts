@@ -6,21 +6,37 @@ export interface IUser extends Document {
   mobile?: string;
   password: string;
   role: string;
+  username?: string;
+  profilePic?: string;
   otp?: string;
   otpExpiry?: number;
   token?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
-const UserSchema: Schema = new Schema({
-  name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  mobile: { type: String }, 
-  role: { type: String, enum: ["superadmin", "admin", "customer" , "user"], default: "user" },
-  otp: { type: String },
-  otpExpiry: { type: Number },
-  token: { type: String },
-});
+const UserSchema: Schema = new Schema(
+  {
+    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    mobile: { type: String, required: true, unique: true },
+    role: {
+      type: String,
+      enum: ["superadmin", "admin", "customer", "user"],
+      default: "user",
+      required: true,
+    },
+    username: { type: String, required: true, unique: true },
+    profilePic: { type: String, required: true },
+    otp: { type: String },
+    otpExpiry: { type: Number },
+    token: { type: String },
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now },
+  },
+  { timestamps: true }
+);
 
 const User = mongoose.model<IUser>("User", UserSchema);
 

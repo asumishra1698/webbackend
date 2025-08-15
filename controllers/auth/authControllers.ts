@@ -44,7 +44,7 @@ export const register = async (
         return;
       }
     }
-    
+
     if (email) {
       const existingEmail = await User.findOne({ email });
       if (existingEmail) {
@@ -60,6 +60,17 @@ export const register = async (
       }
     }
 
+    // Username auto-generate logic
+    const namePart = name.replace(/\s+/g, "").toLowerCase().substring(0, 5);
+    const mobilePart = mobile;
+    let username = `${namePart}_${mobilePart}`;
+    username = username.substring(0, 10);
+
+    let profilePic = "";
+    if (req.file) {
+      profilePic = req.file.filename;
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await User.create({
       name,
@@ -67,7 +78,38 @@ export const register = async (
       mobile,
       password: hashedPassword,
       role,
+      username,
+      profilePic,
     });
+
+    // Send welcome email after registration
+    try {
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS,
+        },
+      });
+
+      const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: user.email,
+        subject: "Welcome to Our Platform!",
+        html: `
+          <h2>Welcome, ${user.name}!</h2>
+          <p>Your registration was successful.</p>
+          <p>Username: <b>${user.username}</b></p>
+          <p>Thank you for joining us!</p>
+        `,
+      };
+
+      await transporter.sendMail(mailOptions);
+    } catch (emailErr) {
+      // Email error ko ignore kar sakte hain ya log kar sakte hain
+      console.error("Registration email error:", emailErr);
+    }
+
     res.status(201).json({
       message: "User registered successfully",
       user: {
@@ -76,6 +118,10 @@ export const register = async (
         email: user.email,
         mobile: user.mobile,
         role: user.role,
+        username: user.username,
+        profilePic: user.profilePic,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
       },
     });
   } catch (err) {
@@ -89,14 +135,15 @@ export const login = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { email, mobile, password, role } = req.body;    
+    const { email, mobile, password, role } = req.body;
     if ((!email && !mobile) || !password || !role) {
-      res
-        .status(400)
-        .json({ message: "Email or mobile, password, and role are required" });
+      res.status(400).json({
+        status: false,
+        message: "Email or mobile, password, and role are required",
+      });
       return;
     }
-    
+
     let user;
     if (email && mobile) {
       user = await User.findOne({ email, mobile });
@@ -107,18 +154,28 @@ export const login = async (
     }
 
     if (!user) {
-      res.status(400).json({ message: "Invalid credentials" });
+      res.status(400).json({
+        status: false,
+        message: "Invalid credentials",
+      });
       return;
     }
 
-    if (!role || user.role !== role) {
-      res.status(403).json({ message: "Role mismatch or not provided" });
+    // Case-insensitive role check
+    if (!role || user.role.toLowerCase() !== role.toLowerCase()) {
+      res.status(403).json({
+        status: false,
+        message: "Role mismatch or not provided",
+      });
       return;
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      res.status(400).json({ message: "Invalid credentials" });
+      res.status(400).json({
+        status: false,
+        message: "Invalid credentials",
+      });
       return;
     }
 
@@ -130,7 +187,8 @@ export const login = async (
     // @ts-ignore
     user.token = token;
     await user.save();
-    res.json({
+    res.status(200).json({
+      status: true,
       message: "Login successful",
       user: {
         id: user._id,
@@ -138,9 +196,14 @@ export const login = async (
         email: user.email,
         mobile: user.mobile,
         role: user.role,
+        username: user.username,
+        profilePic: user.profilePic,
         token,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
       },
     });
+    return;
   } catch (err) {
     next(err);
   }
@@ -230,6 +293,10 @@ export const verifyEmailLoginOtp = async (
         email: user.email,
         mobile: user.mobile,
         role: user.role,
+        username: user.username,
+        profilePic: user.profilePic,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
       },
     });
   } catch (err) {
@@ -351,6 +418,7 @@ export const getAllUsers = async (
   next: NextFunction
 ): Promise<void> => {
   try {
+    res.setHeader("Cache-Control", "no-store");
     const { role, search, page = 1, limit = 10 } = req.query;
     const query: any = {};
     if (role) {
@@ -380,14 +448,55 @@ export const getAllUsers = async (
       email: u.email,
       mobile: u.mobile,
       role: u.role,
+      username: u.username,
+      profilePic: u.profilePic,
+      createdAt: u.createdAt,
+      updatedAt: u.updatedAt,
     }));
 
-    res.json({
+    res.status(200).json({
+      status: true,
+      message: "Users fetched successfully",
       users: usersWithId,
-      totalUsers,      
+      totalUsers,
       page: pageNum,
       Pages: Math.ceil(totalUsers / limitNum),
       limit: limitNum,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getProfile = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    res.setHeader("Cache-Control", "no-store");
+    // @ts-ignore
+    const user = await User.findById(req.user.id).select(
+      "-password -otp -otpExpiry -token"
+    );
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+    res.status(200).json({
+      status: true,
+      message: "Profile fetched successfully",
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        mobile: user.mobile,
+        role: user.role,
+        username: user.username,
+        profilePic: user.profilePic,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      },
     });
   } catch (err) {
     next(err);
@@ -403,4 +512,5 @@ export default {
   resetpassword,
   getRole,
   getAllUsers,
+  getProfile,
 };

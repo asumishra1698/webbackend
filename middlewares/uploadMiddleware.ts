@@ -29,3 +29,21 @@ export const uploadBlogImages = multer({
   fileFilter: fileFilter,
   limits: { fileSize: 5 * 1024 * 1024 },
 });
+
+// Profile pic storage config
+const profilePicStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, path.join(__dirname, "../uploads/profile"));
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + "-" + file.originalname.replace(/\s+/g, "_"));
+  },
+});
+
+// Profile pic multer middleware
+export const uploadProfilePic = multer({
+  storage: profilePicStorage,
+  fileFilter: fileFilter,
+  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
+});
