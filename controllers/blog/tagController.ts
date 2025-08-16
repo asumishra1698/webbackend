@@ -41,8 +41,37 @@ export const getAllTags = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const tags = await Tag.find();
-    res.json(tags);
+    const { search, page = 1, limit = 10 } = req.query;
+
+    const query: any = {};
+    if (search) {
+      const searchRegex = new RegExp(search as string, "i");
+      query.$or = [
+        { name: searchRegex },
+        { slug: searchRegex },
+      ];
+    }
+
+    const pageNum = parseInt(page as string, 10);
+    const limitNum = parseInt(limit as string, 10);
+    const skip = (pageNum - 1) * limitNum;
+
+    const tags = await Tag.find(query)
+      .skip(skip)
+      .limit(limitNum)
+      .lean();
+
+    const totalTags = await Tag.countDocuments(query);
+
+    res.status(200).json({
+      status: true,
+      message: "Tags fetched successfully",
+      tags,
+      totalTags,
+      page: pageNum,
+      pages: Math.ceil(totalTags / limitNum),
+      limit: limitNum,
+    });
   } catch (err) {
     next(err);
   }

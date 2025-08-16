@@ -40,9 +40,29 @@ export const createPost = async (
       ? (req.files as any).galleryImages.map((img: any) => img.filename)
       : [];
 
-    if (!title || !description || !category || !featuredImage) {
+    // category ko array me convert karein
+    let categoryArr = category;
+    if (typeof category === "string") {
+      categoryArr = [category];
+    } else if (Array.isArray(category)) {
+      categoryArr = category;
+    } else {
+      categoryArr = [];
+    }
+
+    // tags ko array me convert karein
+    let tagsArr = tags;
+    if (typeof tags === "string") {
+      tagsArr = [tags];
+    } else if (Array.isArray(tags)) {
+      tagsArr = tags;
+    } else {
+      tagsArr = [];
+    }
+
+    if (!title || !description || !categoryArr.length || !featuredImage) {
       res.status(400).json({
-        message: "Title, description, category, and featuredImage are required.",
+        message: "Title, description, category (at least one), and featuredImage are required.",
       });
       return;
     }
@@ -54,8 +74,8 @@ export const createPost = async (
       slug,
       description,
       author,
-      category,
-      tags,
+      category: categoryArr,
+      tags: tagsArr,
       featuredImage,
       galleryImages,
       metaTitle,

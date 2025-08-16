@@ -41,8 +41,35 @@ export const getAllCategories = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const categories = await Category.find().populate("parent", "name slug");
-    res.json(categories);
+    res.setHeader("Cache-Control", "no-store");
+    const { search, page = 1, limit = 10 } = req.query;
+    const query: any = {};
+    if (search) {
+      const searchRegex = new RegExp(search as string, "i");
+      query.$or = [{ name: searchRegex }, { slug: searchRegex }];
+    }
+
+    const pageNum = parseInt(page as string, 10);
+    const limitNum = parseInt(limit as string, 10);
+    const skip = (pageNum - 1) * limitNum;
+
+    const categories = await Category.find(query)
+      .populate("parent", "name slug")
+      .skip(skip)
+      .limit(limitNum)
+      .lean();
+
+    const totalCategories = await Category.countDocuments(query);
+
+    res.status(200).json({
+      status: true,
+      message: "Categories fetched successfully",
+      categories,
+      totalCategories,
+      page: pageNum,
+      pages: Math.ceil(totalCategories / limitNum),
+      limit: limitNum,
+    });
   } catch (err) {
     next(err);
   }

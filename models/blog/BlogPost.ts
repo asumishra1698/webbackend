@@ -5,7 +5,7 @@ export interface IBlogPost extends Document {
   slug: string;
   description: string;
   author: mongoose.Types.ObjectId;
-  category: mongoose.Types.ObjectId;
+  category: mongoose.Types.ObjectId[];
   tags: mongoose.Types.ObjectId[];
   featuredImage: string;
   galleryImages?: string[];
@@ -21,7 +21,9 @@ const BlogPostSchema: Schema = new Schema(
     slug: { type: String, required: true, unique: true },
     description: { type: String, required: true },
     author: { type: Schema.Types.ObjectId, ref: "User", required: true },
-    category: { type: Schema.Types.ObjectId, ref: "Category", required: true },
+    category: [
+      { type: Schema.Types.ObjectId, ref: "Category", required: true },
+    ],
     tags: [{ type: Schema.Types.ObjectId, ref: "Tag" }],
     featuredImage: { type: String, required: true },
     galleryImages: [{ type: String }],
