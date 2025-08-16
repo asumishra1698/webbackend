@@ -7,6 +7,7 @@ import {
   getPostBySlug,
   updatePost,
   deletePost,
+  updatePostStatus,
 } from "../../controllers/blog/blogPostController";
 
 const router = express.Router();
@@ -33,5 +34,5 @@ router.put(
 router.get("/", getAllPosts);
 router.get("/:slug", getPostBySlug);
 router.delete("/:id", authenticate, deletePost);
-
+router.patch("/:id/status", authenticate, updatePostStatus);
 export default router;

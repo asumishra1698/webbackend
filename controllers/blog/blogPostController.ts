@@ -97,12 +97,18 @@ export const getAllPosts = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { category, tag, search } = req.query;
+    const { category, tag, search, status } = req.query;
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
     const skip = (page - 1) * limit;
 
-    const query: any = { status: "published" };
+    const query: any = {};
+
+    // Status filter (optional)
+    if (status && (status === "draft" || status === "published")) {
+      query.status = status;
+    }
+    // Agar status nahi diya toh sabhi posts laayega
 
     if (category) query.category = category;
     if (tag) query.tags = { $in: [tag] };
@@ -118,7 +124,7 @@ export const getAllPosts = async (
 
     const total = await BlogPost.countDocuments(query);
 
-    res.json({
+    res.status(200).json({
       posts,
       pagination: {
         total,
@@ -178,6 +184,41 @@ export const updatePost = async (
       return;
     }
     res.json(post);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const updatePostStatus = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { status } = req.body;
+    if (!status || (status !== "draft" && status !== "published")) {
+      res.status(400).json({ message: "Status must be 'draft' or 'published'" });
+      return;
+    }
+
+    const post = await BlogPost.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true }
+    )
+      .populate("author", "name email")
+      .populate("category", "name slug")
+      .populate("tags", "name slug");
+
+    if (!post) {
+      res.status(404).json({ message: "Blog post not found" });
+      return;
+    }
+
+    res.status(200).json({
+      message: "Post status updated successfully",
+      post,
+    });
   } catch (err) {
     next(err);
   }

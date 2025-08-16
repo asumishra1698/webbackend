@@ -55,13 +55,12 @@ export const getAllCategories = async (
 
     const categories = await Category.find(query)
       .populate("parent", "name slug")
+      .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limitNum)
       .lean();
 
     const totalCategories = await Category.countDocuments(query);
-
-    // Post counting for each category
     const categoriesWithCount = await Promise.all(
       categories.map(async (cat: any) => {
         const postCount = await BlogPost.countDocuments({ category: cat._id });

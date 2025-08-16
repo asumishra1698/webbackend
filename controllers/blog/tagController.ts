@@ -46,10 +46,7 @@ export const getAllTags = async (
     const query: any = {};
     if (search) {
       const searchRegex = new RegExp(search as string, "i");
-      query.$or = [
-        { name: searchRegex },
-        { slug: searchRegex },
-      ];
+      query.$or = [{ name: searchRegex }, { slug: searchRegex }];
     }
 
     const pageNum = parseInt(page as string, 10);
@@ -57,6 +54,7 @@ export const getAllTags = async (
     const skip = (pageNum - 1) * limitNum;
 
     const tags = await Tag.find(query)
+      .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limitNum)
       .lean();
@@ -105,8 +103,6 @@ export const updateTag = async (
   }
 };
 
-
-
 // ... baaki ka code ...
 
 export const deleteTag = async (
@@ -130,7 +126,9 @@ export const deleteTag = async (
       return;
     }
 
-    res.json({ message: `Tag '${tag.name}' deleted successfully and removed from all posts.` });
+    res.json({
+      message: `Tag '${tag.name}' deleted successfully and removed from all posts.`,
+    });
   } catch (err) {
     next(err);
   }
