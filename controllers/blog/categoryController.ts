@@ -61,10 +61,21 @@ export const getAllCategories = async (
 
     const totalCategories = await Category.countDocuments(query);
 
+    // Post counting for each category
+    const categoriesWithCount = await Promise.all(
+      categories.map(async (cat: any) => {
+        const postCount = await BlogPost.countDocuments({ category: cat._id });
+        return {
+          ...cat,
+          postCount,
+        };
+      })
+    );
+
     res.status(200).json({
       status: true,
       message: "Categories fetched successfully",
-      categories,
+      categories: categoriesWithCount,
       totalCategories,
       page: pageNum,
       pages: Math.ceil(totalCategories / limitNum),
