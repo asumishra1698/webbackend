@@ -11,6 +11,8 @@ import contactFormRoutes from "./routes/contact/contactFormRoutes";
 import blogPostRoutes from "./routes/blog/blogPostRoutes";
 import tagRoutes from "./routes/blog/tagRoutes";
 import categoryRoutes from "./routes/blog/categoryRoutes";
+import productRoutes from "./routes/products/productRoutes";
+import productCategoryRoutes from "./routes/products/productCategoryRoutes";
 
 dotenv.config();
 connectDB();
@@ -30,6 +32,8 @@ app.use("/api/contact", contactFormRoutes);
 app.use("/api/blog/categories", categoryRoutes);
 app.use("/api/blog/tags", tagRoutes);
 app.use("/api/blog/posts", blogPostRoutes);
+app.use("/api/products", productRoutes);
+app.use("/api/product-categories", productCategoryRoutes);
 
 app.use(errorHandler);
 

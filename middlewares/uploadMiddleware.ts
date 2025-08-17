@@ -45,5 +45,41 @@ const profilePicStorage = multer.diskStorage({
 export const uploadProfilePic = multer({
   storage: profilePicStorage,
   fileFilter: fileFilter,
-  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
+  limits: { fileSize: 2 * 1024 * 1024 },
+});
+
+// Product images storage config
+const productImageStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, path.join(__dirname, "../uploads/products"));
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + "-" + file.originalname.replace(/\s+/g, "_"));
+  },
+});
+
+// Product images multer middleware
+export const uploadProductImages = multer({
+  storage: productImageStorage,
+  fileFilter: fileFilter,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+});
+
+
+const categoryImageStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, path.join(__dirname, "../uploads/categories"));
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + "-" + file.originalname.replace(/\s+/g, "_"));
+  },
+});
+
+// Category images multer middleware
+export const uploadCategoryImages = multer({
+  storage: categoryImageStorage,
+  fileFilter: fileFilter,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
 });
