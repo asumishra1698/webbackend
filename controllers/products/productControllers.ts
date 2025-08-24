@@ -78,17 +78,39 @@ export const getAllProducts = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { search, page = 1, limit = 10 } = req.query;
+    const {
+      search,
+      page = 1,
+      limit = 10,
+      productcategory,
+      producttags,
+      brand,
+    } = req.query;
     const query: any = {};
+
     if (search) {
       query.name = { $regex: search, $options: "i" };
     }
+    if (productcategory) {
+      query.productcategory = productcategory;
+    }
+    if (producttags) {
+      query.producttags = {
+        $in: Array.isArray(producttags) ? producttags : [producttags],
+      };
+    }
+    if (brand) {
+      query.brand = brand;
+    }
+
     const pageNum = parseInt(page as string, 10);
     const limitNum = parseInt(limit as string, 10);
     const skip = (pageNum - 1) * limitNum;
 
     const products = await Product.find(query)
       .populate("productcategory")
+      .populate("producttags")
+      .populate("brand")
       .skip(skip)
       .limit(limitNum)
       .lean();
