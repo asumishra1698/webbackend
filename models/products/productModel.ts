@@ -7,7 +7,7 @@ export interface IProduct extends Document {
   price: number;
   salePrice?: number;
   productcategory: mongoose.Types.ObjectId[];
-  brand?: string;
+  brand?: mongoose.Types.ObjectId;
   sku?: string;
   barcode?: string;
   variants?: {
@@ -19,7 +19,7 @@ export interface IProduct extends Document {
   stock: number;
   images: string[];
   thumbnail?: string;
-  producttags?: string[];
+  producttags?: mongoose.Types.ObjectId[];
   weight?: number;
   dimensions?: { length?: number; width?: number; height?: number };
   isFeatured?: boolean;
@@ -44,7 +44,7 @@ const ProductSchema: Schema = new Schema(
     price: { type: Number, required: true },
     salePrice: Number,
     productcategory: [{ type: Schema.Types.ObjectId, ref: "ProductCategory" }],
-    brand: String,
+    brand: { type: Schema.Types.ObjectId, ref: "ProductBrand" },
     sku: String,
     barcode: String,
     variants: [
@@ -53,7 +53,7 @@ const ProductSchema: Schema = new Schema(
     stock: { type: Number, default: 0 },
     images: [{ type: String }],
     thumbnail: String,
-    producttags: [{ type: String }],
+    producttags: [{ type: Schema.Types.ObjectId, ref: "ProductTag" }],
     weight: Number,
     dimensions: { length: Number, width: Number, height: Number },
     isFeatured: { type: Boolean, default: false },

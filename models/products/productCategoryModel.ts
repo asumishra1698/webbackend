@@ -5,8 +5,8 @@ export interface IProductCategory extends Document {
   slug: string;
   description?: string;
   parent?: mongoose.Types.ObjectId;
-  bannerImage?: string;    // <-- Add this
-  thumbnailImage?: string; // <-- Add this
+  bannerImage?: string;
+  thumbnailImage?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -17,8 +17,8 @@ const ProductCategorySchema: Schema = new Schema(
     slug: { type: String, required: true, unique: true },
     description: String,
     parent: { type: Schema.Types.ObjectId, ref: "ProductCategory" },
-    bannerImage: { type: String },    // <-- Add this
-    thumbnailImage: { type: String }, // <-- Add this
+    bannerImage: { type: String },
+    thumbnailImage: { type: String },
   },
   { timestamps: true }
 );

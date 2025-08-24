@@ -13,4 +13,4 @@ const TagSchema: Schema = new Schema(
   { timestamps: true }
 );
 
-export default mongoose.model<ITag>("Tag", TagSchema);
+export default mongoose.model<ITag>("BlogTag", TagSchema);

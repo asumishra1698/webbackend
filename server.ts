@@ -9,10 +9,14 @@ import authRoutes from "./routes/auth/authRoutes";
 import contactFormRoutes from "./routes/contact/contactFormRoutes";
 
 import blogPostRoutes from "./routes/blog/blogPostRoutes";
-import tagRoutes from "./routes/blog/tagRoutes";
+import blogTagRoutes from "./routes/blog/blogTagRoutes";
 import categoryRoutes from "./routes/blog/categoryRoutes";
+
 import productRoutes from "./routes/products/productRoutes";
 import productCategoryRoutes from "./routes/products/productCategoryRoutes";
+
+import productTagRoutes from "./routes/products/productTagRoutes";
+import productBrandRoutes from "./routes/products/productBrandRoutes";
 
 dotenv.config();
 connectDB();
@@ -30,10 +34,12 @@ app.use("/api/contact", contactFormRoutes);
 
 // Blog Routes
 app.use("/api/blog/categories", categoryRoutes);
-app.use("/api/blog/tags", tagRoutes);
+app.use("/api/blog/tags", blogTagRoutes);
 app.use("/api/blog/posts", blogPostRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/product-categories", productCategoryRoutes);
+app.use("/api/product-tags", productTagRoutes);
+app.use("/api/product-brands", productBrandRoutes);
 
 app.use(errorHandler);
 

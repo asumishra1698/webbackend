@@ -1,21 +1,21 @@
 import { Request, Response, NextFunction } from "express";
-import Tag from "../../models/blog/Tag";
+import BlogTag from "../../models/blog/BlogTag";
 import BlogPost from "../../models/blog/BlogPost";
 import slugify from "slugify";
 
 const generateUniqueSlug = async (name: string): Promise<string> => {
   let slug = slugify(name, { lower: true, strict: true });
-  let existingTag = await Tag.findOne({ slug });
+  let existingTag = await BlogTag.findOne({ slug });
   let counter = 1;
   while (existingTag) {
     slug = `${slugify(name, { lower: true, strict: true })}-${counter}`;
-    existingTag = await Tag.findOne({ slug });
+    existingTag = await BlogTag.findOne({ slug });
     counter++;
   }
   return slug;
 };
 
-export const createTag = async (
+export const createBlogTag = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -23,19 +23,19 @@ export const createTag = async (
   try {
     const { name } = req.body;
     if (!name) {
-      res.status(400).json({ message: "Tag name is required" });
+      res.status(400).json({ message: "Blog Tag name is required" });
       return;
     }
     const slug = await generateUniqueSlug(name);
-    const tag = new Tag({ name, slug });
-    await tag.save();
-    res.status(201).json(tag);
+    const blogTag = new BlogTag({ name, slug });
+    await blogTag.save();
+    res.status(201).json(blogTag);
   } catch (err) {
     next(err);
   }
 };
 
-export const getAllTags = async (
+export const getAllBlogTags = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -53,18 +53,18 @@ export const getAllTags = async (
     const limitNum = parseInt(limit as string, 10);
     const skip = (pageNum - 1) * limitNum;
 
-    const tags = await Tag.find(query)
+    const blogTags = await BlogTag.find(query)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limitNum)
       .lean();
 
-    const totalTags = await Tag.countDocuments(query);
+    const totalTags = await BlogTag.countDocuments(query);
 
     res.status(200).json({
       status: true,
-      message: "Tags fetched successfully",
-      tags,
+      message: "Blog Tags fetched successfully",
+      blogTags,
       totalTags,
       page: pageNum,
       pages: Math.ceil(totalTags / limitNum),
@@ -75,7 +75,7 @@ export const getAllTags = async (
   }
 };
 
-export const updateTag = async (
+export const updateBlogTag = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -89,23 +89,21 @@ export const updateTag = async (
       updateData.slug = await generateUniqueSlug(name);
     }
 
-    const tag = await Tag.findByIdAndUpdate(req.params.id, updateData, {
+    const blogTag = await BlogTag.findByIdAndUpdate(req.params.id, updateData, {
       new: true,
     });
 
-    if (!tag) {
-      res.status(404).json({ message: "Tag not found" });
+    if (!blogTag) {
+      res.status(404).json({ message: "Blog Tag not found" });
       return;
     }
-    res.json(tag);
+    res.json(blogTag);
   } catch (err) {
     next(err);
   }
 };
 
-// ... baaki ka code ...
-
-export const deleteTag = async (
+export const deleteBlogTag = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -120,14 +118,14 @@ export const deleteTag = async (
     );
 
     // 2. Ab tag ko delete karein
-    const tag = await Tag.findByIdAndDelete(tagIdToDelete);
-    if (!tag) {
-      res.status(404).json({ message: "Tag not found" });
+    const blogTag = await BlogTag.findByIdAndDelete(tagIdToDelete);
+    if (!blogTag) {
+      res.status(404).json({ message: "Blog Tag not found" });
       return;
     }
 
     res.json({
-      message: `Tag '${tag.name}' deleted successfully and removed from all posts.`,
+      message: `Blog Tag '${blogTag.name}' deleted successfully and removed from all posts.`,
     });
   } catch (err) {
     next(err);
