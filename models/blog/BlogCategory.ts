@@ -6,13 +6,13 @@ export interface ICategory extends Document {
   parent?: mongoose.Types.ObjectId;
 }
 
-const CategorySchema: Schema = new Schema(
+const BlogCategorySchema: Schema = new Schema(
   {
     name: { type: String, required: true, unique: true },
     slug: { type: String, required: true, unique: true },
-    parent: { type: Schema.Types.ObjectId, ref: "Category", default: null },
+    parent: { type: Schema.Types.ObjectId, ref: "BlogCategory", default: null },
   },
   { timestamps: true }
 );
 
-export default mongoose.model<ICategory>("Category", CategorySchema);
+export default mongoose.model<ICategory>("BlogCategory", BlogCategorySchema);

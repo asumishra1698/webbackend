@@ -1,21 +1,21 @@
 import { Request, Response, NextFunction } from "express";
-import Category from "../../models/blog/Category";
+import BlogCategory from "../../models/blog/BlogCategory";
 import BlogPost from "../../models/blog/BlogPost";
 import slugify from "slugify";
 
 const generateUniqueSlug = async (name: string): Promise<string> => {
   let slug = slugify(name, { lower: true, strict: true });
-  let existingCategory = await Category.findOne({ slug });
+  let existingCategory = await BlogCategory.findOne({ slug });
   let counter = 1;
   while (existingCategory) {
     slug = `${slugify(name, { lower: true, strict: true })}-${counter}`;
-    existingCategory = await Category.findOne({ slug });
+    existingCategory = await BlogCategory.findOne({ slug });
     counter++;
   }
   return slug;
 };
 
-export const createCategory = async (
+export const createBlogCategory = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -27,7 +27,7 @@ export const createCategory = async (
       return;
     }
     const slug = await generateUniqueSlug(name);
-    const category = new Category({ name, slug, parent: parent || null });
+    const category = new BlogCategory({ name, slug, parent: parent || null });
     await category.save();
     res.status(201).json(category);
   } catch (err) {
@@ -35,7 +35,7 @@ export const createCategory = async (
   }
 };
 
-export const getAllCategories = async (
+export const getAllBlogCategories = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -53,14 +53,14 @@ export const getAllCategories = async (
     const limitNum = parseInt(limit as string, 10);
     const skip = (pageNum - 1) * limitNum;
 
-    const categories = await Category.find(query)
+    const categories = await BlogCategory.find(query)
       .populate("parent", "name slug")
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limitNum)
       .lean();
 
-    const totalCategories = await Category.countDocuments(query);
+    const totalCategories = await BlogCategory.countDocuments(query);
     const categoriesWithCount = await Promise.all(
       categories.map(async (cat: any) => {
         const postCount = await BlogPost.countDocuments({ category: cat._id });
@@ -85,7 +85,7 @@ export const getAllCategories = async (
   }
 };
 
-export const updateCategory = async (
+export const updateBlogCategory = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -103,7 +103,7 @@ export const updateCategory = async (
       updateData.parent = parent || null;
     }
 
-    const category = await Category.findByIdAndUpdate(
+    const category = await BlogCategory.findByIdAndUpdate(
       req.params.id,
       updateData,
       { new: true }
@@ -119,14 +119,16 @@ export const updateCategory = async (
   }
 };
 
-export const deleteCategory = async (
+export const deleteBlogCategory = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
     const categoryIdToDelete = req.params.id;
-    const defaultCategory = await Category.findOne({ slug: "uncategorized" });
+    const defaultCategory = await BlogCategory.findOne({
+      slug: "uncategorized",
+    });
     if (!defaultCategory) {
       res.status(500).json({
         message:
@@ -144,7 +146,7 @@ export const deleteCategory = async (
       { $set: { category: defaultCategory.id } }
     );
 
-    const category = await Category.findByIdAndDelete(categoryIdToDelete);
+    const category = await BlogCategory.findByIdAndDelete(categoryIdToDelete);
     if (!category) {
       res.status(404).json({ message: "Category not found" });
       return;

@@ -10,7 +10,7 @@ import contactFormRoutes from "./routes/contact/contactFormRoutes";
 
 import blogPostRoutes from "./routes/blog/blogPostRoutes";
 import blogTagRoutes from "./routes/blog/blogTagRoutes";
-import categoryRoutes from "./routes/blog/categoryRoutes";
+import blogCategoryRoutes from "./routes/blog/blogCategoryRoutes";
 
 import productRoutes from "./routes/products/productRoutes";
 import productCategoryRoutes from "./routes/products/productCategoryRoutes";
@@ -33,7 +33,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/contact", contactFormRoutes);
 
 // Blog Routes
-app.use("/api/blog/categories", categoryRoutes);
+app.use("/api/blog/categories", blogCategoryRoutes);
 app.use("/api/blog/tags", blogTagRoutes);
 app.use("/api/blog/posts", blogPostRoutes);
 app.use("/api/products", productRoutes);

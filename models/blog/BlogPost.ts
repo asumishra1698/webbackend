@@ -22,9 +22,9 @@ const BlogPostSchema: Schema = new Schema(
     description: { type: String, required: true },
     author: { type: Schema.Types.ObjectId, ref: "User", required: true },
     category: [
-      { type: Schema.Types.ObjectId, ref: "Category", required: true },
+      { type: Schema.Types.ObjectId, ref: "BlogCategory", required: true },
     ],
-    tags: [{ type: Schema.Types.ObjectId, ref: "Tag" }],
+    tags: [{ type: Schema.Types.ObjectId, ref: "BlogTag" }],
     featuredImage: { type: String, required: true },
     galleryImages: [{ type: String }],
     metaTitle: { type: String },
