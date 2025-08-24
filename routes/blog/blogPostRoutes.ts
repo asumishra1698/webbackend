@@ -21,7 +21,9 @@ router.post(
   ]),
   createPost
 );
-
+router.get("/", getAllPosts);
+router.get("/:slug", getPostBySlug);
+router.delete("/:id", authenticate, deletePost);
 router.put(
   "/:id",
   authenticate,
@@ -31,8 +33,5 @@ router.put(
   ]),
   updatePost
 );
-router.get("/", getAllPosts);
-router.get("/:slug", getPostBySlug);
-router.delete("/:id", authenticate, deletePost);
 router.patch("/:id/status", authenticate, updatePostStatus);
 export default router;
