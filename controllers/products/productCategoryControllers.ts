@@ -1,4 +1,4 @@
-import ProductCategory from "../../models/products/productCategorymodel";
+import ProductCategory from "../../models/products/productCategoryModel";
 import { Request, Response, NextFunction } from "express";
 
 // Create ProductCategory
