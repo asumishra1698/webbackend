@@ -42,7 +42,8 @@ export const getAllProductBrands = async (
   next: NextFunction
 ) => {
   try {
-    const brands = await ProductBrand.find().lean();
+    // Soft delete filter
+    const brands = await ProductBrand.find({ isDeleted: false }).lean();
     res.status(200).json({ status: true, brands });
   } catch (err) {
     next(err);
@@ -105,14 +106,21 @@ export const deleteProductBrand = async (
   next: NextFunction
 ) => {
   try {
-    const brand = await ProductBrand.findByIdAndDelete(req.params.id);
+    // Soft delete: set isDeleted and deletedAt
+    const brand = await ProductBrand.findByIdAndUpdate(
+      req.params.id,
+      { isDeleted: true, deletedAt: new Date() },
+      { new: true }
+    );
     if (!brand) {
       res
         .status(404)
         .json({ status: false, message: "Product brand not found" });
       return;
     }
-    res.status(200).json({ status: true, message: "Product brand deleted" });
+    res
+      .status(200)
+      .json({ status: true, message: "Product brand soft deleted" });
   } catch (err) {
     next(err);
   }

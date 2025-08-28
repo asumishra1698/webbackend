@@ -43,7 +43,9 @@ export const getAllBlogTags = async (
   try {
     const { search, page = 1, limit = 10 } = req.query;
 
-    const query: any = {};
+    // Soft delete filter
+    const query: any = { isDeleted: false };
+
     if (search) {
       const searchRegex = new RegExp(search as string, "i");
       query.$or = [{ name: searchRegex }, { slug: searchRegex }];
@@ -117,15 +119,19 @@ export const deleteBlogTag = async (
       { $pull: { tags: tagIdToDelete } }
     );
 
-    // 2. Ab tag ko delete karein
-    const blogTag = await BlogTag.findByIdAndDelete(tagIdToDelete);
+    // 2. Soft delete: set isDeleted and deletedAt
+    const blogTag = await BlogTag.findByIdAndUpdate(
+      tagIdToDelete,
+      { isDeleted: true, deletedAt: new Date() },
+      { new: true }
+    );
     if (!blogTag) {
       res.status(404).json({ message: "Blog Tag not found" });
       return;
     }
 
     res.json({
-      message: `Blog Tag '${blogTag.name}' deleted successfully and removed from all posts.`,
+      message: `Blog Tag '${blogTag.name}' soft deleted successfully and removed from all posts.`,
     });
   } catch (err) {
     next(err);

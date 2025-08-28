@@ -86,7 +86,9 @@ export const getAllProducts = async (
       producttags,
       brand,
     } = req.query;
-    const query: any = {};
+
+    // Soft delete filter
+    const query: any = { isDeleted: false };
 
     if (search) {
       query.name = { $regex: search, $options: "i" };
@@ -178,14 +180,19 @@ export const deleteProduct = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const product = await Product.findByIdAndDelete(req.params.id);
+    // Soft delete: set isDeleted and deletedAt
+    const product = await Product.findByIdAndUpdate(
+      req.params.id,
+      { isDeleted: true, deletedAt: new Date() },
+      { new: true }
+    );
     if (!product) {
       res.status(404).json({ status: false, message: "Product not found" });
       return;
     }
     res.status(200).json({
       status: true,
-      message: "Product deleted successfully",
+      message: "Product soft deleted successfully",
     });
   } catch (err) {
     next(err);

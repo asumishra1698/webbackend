@@ -21,6 +21,8 @@ const ProductCategorySchema: Schema = new Schema(
     parent: { type: Schema.Types.ObjectId, ref: "ProductCategory" },
     bannerImage: { type: String },
     thumbnailImage: { type: String },
+    isDeleted: { type: Boolean, default: false },
+    deletedAt: { type: Date },
   },
   { timestamps: true }
 );

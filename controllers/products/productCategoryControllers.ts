@@ -52,7 +52,8 @@ export const getAllProductCategories = async (
   next: NextFunction
 ) => {
   try {
-    const categories = await ProductCategory.find().lean();
+    // Soft delete filter
+    const categories = await ProductCategory.find({ isDeleted: false }).lean();
     res.status(200).json({ status: true, categories });
   } catch (err) {
     next(err);
@@ -115,14 +116,21 @@ export const deleteProductCategory = async (
   next: NextFunction
 ) => {
   try {
-    const category = await ProductCategory.findByIdAndDelete(req.params.id);
+    // Soft delete: set isDeleted and deletedAt
+    const category = await ProductCategory.findByIdAndUpdate(
+      req.params.id,
+      { isDeleted: true, deletedAt: new Date() },
+      { new: true }
+    );
     if (!category) {
       res
         .status(404)
         .json({ status: false, message: "Product category not found" });
       return;
     }
-    res.status(200).json({ status: true, message: "Product category deleted" });
+    res
+      .status(200)
+      .json({ status: true, message: "Product category soft deleted" });
   } catch (err) {
     next(err);
   }

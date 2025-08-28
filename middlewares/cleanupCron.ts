@@ -1,8 +1,22 @@
 import cron from "node-cron";
-import Product from "../models/products/productModel";
-import ProductTag from "../models/products/productTagModel";
+
 import BlogPost from "../models/blog/BlogPost";
 import BlogCategory from "../models/blog/BlogCategory";
+import BlogTag from "../models/blog/BlogTag";
+import contactFormModal from "../models/contact/contactFormModal";
+import User from "../models/auth/authModal";
+import Product from "../models/products/productModel";
+import ProductTag from "../models/products/productTagModel";
+import ProductBrand from "../models/products/productBrandModal";
+
+// User
+cron.schedule("0 2 * * *", async () => {
+  const twoMonthsAgo = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
+  await User.deleteMany({
+    isDeleted: true,
+    deletedAt: { $lte: twoMonthsAgo },
+  });
+});
 
 // Product
 cron.schedule("0 2 * * *", async () => {
@@ -22,6 +36,15 @@ cron.schedule("0 2 * * *", async () => {
   });
 });
 
+// Product Brand
+cron.schedule("0 2 * * *", async () => {
+  const twoMonthsAgo = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
+  await ProductBrand.deleteMany({
+    isDeleted: true,
+    deletedAt: { $lte: twoMonthsAgo },
+  });
+});
+
 // Blog Post
 cron.schedule("0 2 * * *", async () => {
   const twoMonthsAgo = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
@@ -35,6 +58,24 @@ cron.schedule("0 2 * * *", async () => {
 cron.schedule("0 2 * * *", async () => {
   const twoMonthsAgo = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
   await BlogCategory.deleteMany({
+    isDeleted: true,
+    deletedAt: { $lte: twoMonthsAgo },
+  });
+});
+
+// Blog Tag
+cron.schedule("0 2 * * *", async () => {
+  const twoMonthsAgo = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
+  await BlogTag.deleteMany({
+    isDeleted: true,
+    deletedAt: { $lte: twoMonthsAgo },
+  });
+});
+
+// contact Form
+cron.schedule("0 2 * * *", async () => {
+  const twoMonthsAgo = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
+  await contactFormModal.deleteMany({
     isDeleted: true,
     deletedAt: { $lte: twoMonthsAgo },
   });
