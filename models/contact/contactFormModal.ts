@@ -6,6 +6,8 @@ export interface IContact extends Document {
   email: string;
   message: string;
   city?: string;
+  isDeleted: { type: Boolean; default: false };
+  deletedAt: { type: Date };
 }
 
 const contactSchema: Schema = new Schema(
@@ -15,6 +17,8 @@ const contactSchema: Schema = new Schema(
     email: { type: String, required: true },
     message: { type: String, required: true },
     city: { type: String, required: false },
+    isDeleted: { type: Boolean, default: false },
+    deletedAt: { type: Date },
   },
   { timestamps: true }
 );

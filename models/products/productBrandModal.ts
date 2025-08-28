@@ -7,6 +7,8 @@ export interface IProductBrand extends Document {
   logo?: string;
   createdAt?: Date;
   updatedAt?: Date;
+  isDeleted: { type: Boolean; default: false };
+  deletedAt: { type: Date };
 }
 
 const ProductBrandSchema: Schema = new Schema(

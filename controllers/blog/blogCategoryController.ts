@@ -43,7 +43,8 @@ export const getAllBlogCategories = async (
   try {
     res.setHeader("Cache-Control", "no-store");
     const { search, page = 1, limit = 10 } = req.query;
-    const query: any = {};
+    const query: any = { isDeleted: false };
+
     if (search) {
       const searchRegex = new RegExp(search as string, "i");
       query.$or = [{ name: searchRegex }, { slug: searchRegex }];
@@ -146,14 +147,19 @@ export const deleteBlogCategory = async (
       { $set: { category: defaultCategory.id } }
     );
 
-    const category = await BlogCategory.findByIdAndDelete(categoryIdToDelete);
+    // Soft delete: set isDeleted and deletedAt
+    const category = await BlogCategory.findByIdAndUpdate(
+      categoryIdToDelete,
+      { isDeleted: true, deletedAt: new Date() },
+      { new: true }
+    );
     if (!category) {
       res.status(404).json({ message: "Category not found" });
       return;
     }
 
     res.json({
-      message: `Category '${category.name}' deleted successfully. Associated posts moved to 'Uncategorized'.`,
+      message: `Category '${category.name}' soft deleted successfully. Associated posts moved to 'Uncategorized'.`,
     });
   } catch (err) {
     next(err);

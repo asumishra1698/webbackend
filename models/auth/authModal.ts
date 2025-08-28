@@ -13,6 +13,8 @@ export interface IUser extends Document {
   token?: string;
   createdAt?: Date;
   updatedAt?: Date;
+  isDeleted: { type: Boolean; default: false };
+  deletedAt: { type: Date };
 }
 
 const UserSchema: Schema = new Schema(
@@ -34,6 +36,8 @@ const UserSchema: Schema = new Schema(
     token: { type: String },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
+    isDeleted: { type: Boolean, default: false },
+    deletedAt: { type: Date },
   },
   { timestamps: true }
 );

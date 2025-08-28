@@ -34,6 +34,8 @@ export interface IProduct extends Document {
   vendor?: mongoose.Types.ObjectId;
   createdAt?: Date;
   updatedAt?: Date;
+  isDeleted: { type: Boolean; default: false };
+  deletedAt: { type: Date };
 }
 
 const ProductSchema: Schema = new Schema(
@@ -66,6 +68,8 @@ const ProductSchema: Schema = new Schema(
     warranty: String,
     returnPolicy: String,
     vendor: { type: Schema.Types.ObjectId, ref: "Vendor" },
+    isDeleted: { type: Boolean, default: false },
+    deletedAt: { type: Date },
   },
   { timestamps: true }
 );

@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import bodyParser from "body-parser";
 import cors from "cors";
+import "./middlewares/cleanupCron";
 import path from "path";
 import connectDB from "./config/db";
 import errorHandler from "./middlewares/errorMiddleware";

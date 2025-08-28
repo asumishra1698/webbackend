@@ -102,13 +102,13 @@ export const getAllPosts = async (
     const limit = parseInt(req.query.limit as string) || 10;
     const skip = (page - 1) * limit;
 
-    const query: any = {};
+    // Soft delete filter
+    const query: any = { isDeleted: false };
 
     // Status filter (optional)
     if (status && (status === "draft" || status === "published")) {
       query.status = status;
     }
-    // Agar status nahi diya toh sabhi posts laayega
 
     if (category) query.category = category;
     if (tag) query.tags = { $in: [tag] };
@@ -230,12 +230,17 @@ export const deletePost = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const post = await BlogPost.findByIdAndDelete(req.params.id);
+    // Soft delete: set isDeleted and deletedAt
+    const post = await BlogPost.findByIdAndUpdate(
+      req.params.id,
+      { isDeleted: true, deletedAt: new Date() },
+      { new: true }
+    );
     if (!post) {
       res.status(404).json({ message: "Blog post not found" });
       return;
     }
-    res.json({ message: "Blog post deleted successfully" });
+    res.json({ message: "Blog post soft deleted successfully" });
   } catch (err) {
     next(err);
   }

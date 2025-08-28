@@ -13,6 +13,8 @@ export interface IBlogPost extends Document {
   metaDescription?: string;
   canonicalUrl?: string;
   status: "draft" | "published" | "archived";
+  isDeleted: { type: Boolean; default: false };
+  deletedAt: { type: Date };
 }
 
 const BlogPostSchema: Schema = new Schema(
@@ -35,6 +37,8 @@ const BlogPostSchema: Schema = new Schema(
       enum: ["draft", "published", "archived"],
       default: "draft",
     },
+    isDeleted: { type: Boolean, default: false },
+    deletedAt: { type: Date },
   },
   { timestamps: true }
 );

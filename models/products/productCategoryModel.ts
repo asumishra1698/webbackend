@@ -9,6 +9,8 @@ export interface IProductCategory extends Document {
   thumbnailImage?: string;
   createdAt?: Date;
   updatedAt?: Date;
+  isDeleted: { type: Boolean; default: false };
+  deletedAt: { type: Date };
 }
 
 const ProductCategorySchema: Schema = new Schema(

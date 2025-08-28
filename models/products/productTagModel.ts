@@ -6,6 +6,8 @@ export interface IProductTag extends Document {
   description?: string;
   createdAt?: Date;
   updatedAt?: Date;
+  isDeleted: { type: Boolean; default: false };
+  deletedAt: { type: Date };
 }
 
 const ProductTagSchema: Schema = new Schema(
@@ -13,6 +15,8 @@ const ProductTagSchema: Schema = new Schema(
     name: { type: String, required: true, unique: true },
     slug: { type: String, required: true, unique: true },
     description: String,
+    isDeleted: { type: Boolean, default: false },
+    deletedAt: { type: Date },
   },
   { timestamps: true }
 );
