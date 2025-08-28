@@ -30,7 +30,8 @@ export const getAllProductTags = async (
   next: NextFunction
 ) => {
   try {
-    const tags = await ProductTag.find().lean();
+    // Soft delete filter
+    const tags = await ProductTag.find({ isDeleted: false }).lean();
     res.status(200).json({ status: true, tags });
   } catch (err) {
     next(err);
@@ -85,12 +86,17 @@ export const deleteProductTag = async (
   next: NextFunction
 ) => {
   try {
-    const tag = await ProductTag.findByIdAndDelete(req.params.id);
+    // Soft delete: set isDeleted and deletedAt
+    const tag = await ProductTag.findByIdAndUpdate(
+      req.params.id,
+      { isDeleted: true, deletedAt: new Date() },
+      { new: true }
+    );
     if (!tag) {
       res.status(404).json({ status: false, message: "Product tag not found" });
       return;
     }
-    res.status(200).json({ status: true, message: "Product tag deleted" });
+    res.status(200).json({ status: true, message: "Product tag soft deleted" });
   } catch (err) {
     next(err);
   }

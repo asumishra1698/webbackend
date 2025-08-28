@@ -8,6 +8,7 @@ import User from "../models/auth/authModal";
 import Product from "../models/products/productModel";
 import ProductTag from "../models/products/productTagModel";
 import ProductBrand from "../models/products/productBrandModal";
+import productCategoryModel from "../models/products/productCategoryModel";
 
 // User
 cron.schedule("0 2 * * *", async () => {
@@ -22,6 +23,15 @@ cron.schedule("0 2 * * *", async () => {
 cron.schedule("0 2 * * *", async () => {
   const twoMonthsAgo = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
   await Product.deleteMany({
+    isDeleted: true,
+    deletedAt: { $lte: twoMonthsAgo },
+  });
+});
+
+// Product Category
+cron.schedule("0 2 * * *", async () => {
+  const twoMonthsAgo = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
+  await productCategoryModel.deleteMany({
     isDeleted: true,
     deletedAt: { $lte: twoMonthsAgo },
   });

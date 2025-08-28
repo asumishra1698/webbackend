@@ -17,6 +17,8 @@ const ProductBrandSchema: Schema = new Schema(
     slug: { type: String, required: true, unique: true },
     description: String,
     logo: String,
+    isDeleted: { type: Boolean, default: false },
+    deletedAt: Date,
   },
   { timestamps: true }
 );
