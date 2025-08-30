@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import bodyParser from "body-parser";
 import cors from "cors";
 import "./middlewares/cleanupCron";
+import loggerMiddleware from "./middlewares/loggerMiddleware";
 import path from "path";
 import connectDB from "./config/db";
 import errorHandler from "./middlewares/errorMiddleware";
@@ -29,6 +30,7 @@ app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 app.use(express.json());
 app.use(cors());
+app.use(loggerMiddleware);
 
 app.use("/api/auth", authRoutes);
 app.use("/api/contact", contactFormRoutes);
