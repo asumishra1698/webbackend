@@ -1,7 +1,8 @@
 import multer from "multer";
 import path from "path";
 
-const storage = multer.diskStorage({
+// Blog images storage config
+const blogImageStorage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, path.join(__dirname, "../uploads"));
   },
@@ -25,7 +26,7 @@ const fileFilter = (req: any, file: any, cb: any) => {
 };
 
 export const uploadBlogImages = multer({
-  storage: storage,
+  storage: blogImageStorage,
   fileFilter: fileFilter,
   limits: { fileSize: 5 * 1024 * 1024 },
 });
@@ -41,7 +42,6 @@ const profilePicStorage = multer.diskStorage({
   },
 });
 
-// Profile pic multer middleware
 export const uploadProfilePic = multer({
   storage: profilePicStorage,
   fileFilter: fileFilter,
@@ -59,14 +59,13 @@ const productImageStorage = multer.diskStorage({
   },
 });
 
-// Product images multer middleware
 export const uploadProductImages = multer({
   storage: productImageStorage,
   fileFilter: fileFilter,
   limits: { fileSize: 5 * 1024 * 1024 },
 });
 
-
+// Category images storage config
 const categoryImageStorage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, path.join(__dirname, "../uploads/productcategories"));
@@ -83,7 +82,6 @@ export const uploadCategoryImages = multer({
   limits: { fileSize: 5 * 1024 * 1024 },
 });
 
-
 // Brand logo storage config
 const brandLogoImagesStorage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -95,9 +93,8 @@ const brandLogoImagesStorage = multer.diskStorage({
   },
 });
 
-// Brand logo multer middleware
 export const uploadBrandLogoImages = multer({
   storage: brandLogoImagesStorage,
   fileFilter: fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  limits: { fileSize: 5 * 1024 * 1024 },
 });

@@ -54,11 +54,25 @@ export const createProduct = async (
     // Generate slug from product name
     const slug = generateSlug(req.body.name);
 
+    // Handle images and thumbnail from multer
+    const images =
+      req.files && (req.files as any).images
+        ? (req.files as any).images.map((file: any) => file.filename)
+        : [];
+    const thumbnail =
+      req.files &&
+      (req.files as any).thumbnail &&
+      (req.files as any).thumbnail[0]
+        ? (req.files as any).thumbnail[0].filename
+        : "";
+
     const product = await Product.create({
       ...req.body,
       price,
       salePrice,
       slug,
+      images,
+      thumbnail,
     });
 
     res.status(201).json({
