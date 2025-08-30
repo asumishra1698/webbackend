@@ -30,9 +30,37 @@ export const getAllProductTags = async (
   next: NextFunction
 ) => {
   try {
+    const { search, page = 1, limit = 10 } = req.query;
+
     // Soft delete filter
-    const tags = await ProductTag.find({ isDeleted: false }).lean();
-    res.status(200).json({ status: true, tags });
+    const query: any = { isDeleted: false };
+
+    // Search by name or slug
+    if (search) {
+      const searchRegex = new RegExp(search as string, "i");
+      query.$or = [{ name: searchRegex }, { slug: searchRegex }];
+    }
+
+    const pageNum = parseInt(page as string, 10);
+    const limitNum = parseInt(limit as string, 10);
+    const skip = (pageNum - 1) * limitNum;
+
+    const tags = await ProductTag.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limitNum)
+      .lean();
+
+    const total = await ProductTag.countDocuments(query);
+
+    res.status(200).json({
+      status: true,
+      tags,
+      total,
+      page: pageNum,
+      pages: Math.ceil(total / limitNum),
+      limit: limitNum,
+    });
   } catch (err) {
     next(err);
   }

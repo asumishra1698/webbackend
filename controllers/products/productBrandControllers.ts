@@ -42,9 +42,37 @@ export const getAllProductBrands = async (
   next: NextFunction
 ) => {
   try {
+    const { search, page = 1, limit = 10 } = req.query;
+
     // Soft delete filter
-    const brands = await ProductBrand.find({ isDeleted: false }).lean();
-    res.status(200).json({ status: true, brands });
+    const query: any = { isDeleted: false };
+
+    // Search by name or slug
+    if (search) {
+      const searchRegex = new RegExp(search as string, "i");
+      query.$or = [{ name: searchRegex }, { slug: searchRegex }];
+    }
+
+    const pageNum = parseInt(page as string, 10);
+    const limitNum = parseInt(limit as string, 10);
+    const skip = (pageNum - 1) * limitNum;
+
+    const brands = await ProductBrand.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limitNum)
+      .lean();
+
+    const total = await ProductBrand.countDocuments(query);
+
+    res.status(200).json({
+      status: true,
+      brands,
+      total,
+      page: pageNum,
+      pages: Math.ceil(total / limitNum),
+      limit: limitNum,
+    });
   } catch (err) {
     next(err);
   }
