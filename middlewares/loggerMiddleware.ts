@@ -35,7 +35,7 @@ const loggerMiddleware = async (
       statusMessage: res.statusMessage,
       user: userName,
     });
-    console.log("API RESPONSE:", data);
+    // console.log("API RESPONSE:", data);
     return oldJson.call(this, data);
   };
   next();
