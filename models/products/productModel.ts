@@ -36,6 +36,9 @@ export interface IProduct extends Document {
   updatedAt?: Date;
   isDeleted: { type: Boolean; default: false };
   deletedAt: { type: Date };
+  metaTitle?: string;
+  metaDescription?: string;
+  metaKeywords?: string[];
 }
 
 const ProductSchema: Schema = new Schema(
@@ -70,6 +73,9 @@ const ProductSchema: Schema = new Schema(
     vendor: { type: Schema.Types.ObjectId, ref: "Vendor" },
     isDeleted: { type: Boolean, default: false },
     deletedAt: { type: Date },
+    metaTitle: String,
+    metaDescription: String,
+    metaKeywords: [String],
   },
   { timestamps: true }
 );

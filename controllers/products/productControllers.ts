@@ -1,5 +1,6 @@
 import Product from "../../models/products/productModel";
 import { Request, Response, NextFunction } from "express";
+import { Parser } from "json2csv";
 
 function generateSlug(name: string): string {
   return name
@@ -331,5 +332,64 @@ export const deleteProduct = async (
     });
   } catch (err) {
     next(err);
+  }
+};
+
+export const exportAllProducts = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const products = await Product.find({})
+      .populate("productcategory")
+      .populate("producttags")
+      .populate("brand")
+      .lean();
+
+    // Select fields for CSV
+    const fields = [
+      "name",
+      "slug",
+      "description",
+      "price",
+      "salePrice",
+      "sku",
+      "barcode",
+      "stock",
+      "images",
+      "thumbnail",
+      "weight",
+      "dimensions.length",
+      "dimensions.width",
+      "dimensions.height",
+      "isFeatured",
+      "isActive",
+      "rating",
+      "discount",
+      "tax",
+      "shippingClass",
+      "warranty",
+      "returnPolicy",
+      "metaTitle",
+      "metaDescription",
+      "metaKeywords",
+      "createdAt",
+      "updatedAt"
+      // Add more fields as needed
+    ];
+
+    const parser = new Parser({ fields });
+    const csv = parser.parse(products);
+
+    res.header("Content-Type", "text/csv");
+    res.attachment("products.csv");
+    res.status(200).send(csv);
+  } catch (err) {
+    res.status(500).json({
+      status: false,
+      message: "Failed to export products",
+      error: (err as any)?.message || "Unknown error",
+    });
   }
 };

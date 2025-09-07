@@ -8,6 +8,7 @@ import {
   getProductCategoryById,
   updateProductCategory,
   deleteProductCategory,
+  exportAllProductCategories,
 } from "../../controllers/products/productCategoryControllers";
 
 const router = express.Router();
@@ -25,5 +26,6 @@ router.get("/", authenticate, getAllProductCategories);
 router.get("/:id", authenticate, getProductCategoryById);
 router.put("/:id", authenticate, updateProductCategory);
 router.delete("/:id", authenticate, deleteProductCategory);
+router.get("/export/all", authenticate, exportAllProductCategories);
 
 export default router;

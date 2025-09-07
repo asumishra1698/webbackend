@@ -8,6 +8,7 @@ import {
   updateProduct,
   deleteProduct,
   duplicateProduct,
+  exportAllProducts,
 } from "../../controllers/products/productControllers";
 
 const router = express.Router();
@@ -32,6 +33,7 @@ router.post(
 );
 router.get("/", getAllProducts);
 router.get("/:id", authenticate, getProductById);
+router.get("/export/all", authenticate, exportAllProducts);
 router.put(
   "/:id",
   authenticate,

@@ -1,5 +1,6 @@
 import ProductCategory from "../../models/products/productCategoryModel";
 import { Request, Response, NextFunction } from "express";
+import { Parser } from "json2csv";
 
 // Create ProductCategory
 export const createProductCategory = async (
@@ -157,5 +158,41 @@ export const deleteProductCategory = async (
       .json({ status: true, message: "Product category soft deleted" });
   } catch (err) {
     next(err);
+  }
+};
+
+export const exportAllProductCategories = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const categories = await ProductCategory.find({}).lean();
+
+    // Define fields for CSV
+    const fields = [
+      "name",
+      "slug",
+      "description",
+      "bannerImage",
+      "thumbnailImage",
+      "isDeleted",
+      "createdAt",
+      "updatedAt"
+      // Add more fields as needed
+    ];
+
+    const parser = new Parser({ fields });
+    const csv = parser.parse(categories);
+
+    res.header("Content-Type", "text/csv");
+    res.attachment("categories.csv");
+    res.status(200).send(csv);
+  } catch (err) {
+    res.status(500).json({
+      status: false,
+      message: "Failed to export categories",
+      error: (err as any)?.message || "Unknown error",
+    });
   }
 };
