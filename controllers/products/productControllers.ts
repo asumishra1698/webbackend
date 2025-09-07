@@ -22,7 +22,7 @@ export const createProduct = async (
       });
       return;
     }
-   
+
     if (req.body.sku) {
       const existingProduct = await Product.findOne({ sku: req.body.sku });
       if (existingProduct) {
@@ -33,7 +33,7 @@ export const createProduct = async (
         return;
       }
     }
-    
+
     const price = Number(req.body.price);
     const salePrice = req.body.salePrice
       ? Number(req.body.salePrice)
@@ -95,6 +95,85 @@ export const createProduct = async (
   }
 };
 
+export const duplicateProduct = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const originalProduct = await Product.findById(req.params.id).lean();
+    if (!originalProduct) {
+      res.status(404).json({ status: false, message: "Original product not found" });
+      return;
+    }
+
+    // Handle new images/thumbnail if uploaded, else copy from original
+    let images = Array.isArray(originalProduct.images)
+      ? [...originalProduct.images]
+      : [];
+    let thumbnail = originalProduct.thumbnail || "";
+    if (req.files && (req.files as any).images) {
+      images = (req.files as any).images.map((file: any) => file.filename);
+    }
+    if (
+      req.files &&
+      (req.files as any).thumbnail &&
+      (req.files as any).thumbnail[0]
+    ) {
+      thumbnail = (req.files as any).thumbnail[0].filename;
+    }
+
+    // Remove _id, createdAt, updatedAt, deletedAt
+    const {
+      _id,
+      createdAt,
+      updatedAt,
+      deletedAt,
+      ...rest
+    } = originalProduct;
+
+    // Build new product data
+    const newProductData = {
+      ...rest,
+      name: originalProduct.name + " Copy",
+      slug: generateSlug(originalProduct.name + " Copy"),
+      sku: originalProduct.sku ? originalProduct.sku + "-COPY" : undefined,
+      images,
+      thumbnail,
+      variants: Array.isArray(originalProduct.variants)
+        ? [...originalProduct.variants]
+        : [],
+      productcategory: Array.isArray(originalProduct.productcategory)
+        ? [...originalProduct.productcategory]
+        : [],
+      producttags: Array.isArray(originalProduct.producttags)
+        ? [...originalProduct.producttags]
+        : [],
+      brand: originalProduct.brand || undefined,
+      vendor: originalProduct.vendor || undefined,
+      reviews: Array.isArray(originalProduct.reviews)
+        ? [...originalProduct.reviews]
+        : [],
+      dimensions: originalProduct.dimensions
+        ? { ...originalProduct.dimensions }
+        : { length: 0, width: 0, height: 0 },
+      isDeleted: false,
+      deletedAt: undefined,
+      // All other fields are copied by spread
+    };
+
+    const duplicatedProduct = await Product.create(newProductData);
+
+    res.status(201).json({
+      status: true,
+      message: "Product duplicated successfully",
+      product: duplicatedProduct,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const getAllProducts = async (
   req: Request,
   res: Response,
@@ -135,6 +214,7 @@ export const getAllProducts = async (
       .populate("producttags")
       .populate("brand")
       .skip(skip)
+      .sort({ createdAt: -1 })
       .limit(limitNum)
       .lean();
     const total = await Product.countDocuments(query);
@@ -174,7 +254,7 @@ export const updateProduct = async (
   res: Response,
   next: NextFunction
 ): Promise<void> => {
-  try {    
+  try {
     if (typeof req.body.variants === "string") {
       try {
         let parsed = JSON.parse(req.body.variants);
@@ -236,7 +316,7 @@ export const deleteProduct = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-     const product = await Product.findByIdAndUpdate(
+    const product = await Product.findByIdAndUpdate(
       req.params.id,
       { isDeleted: true, deletedAt: new Date() },
       { new: true }

@@ -7,6 +7,7 @@ import {
   getProductById,
   updateProduct,
   deleteProduct,
+  duplicateProduct,
 } from "../../controllers/products/productControllers";
 
 const router = express.Router();
@@ -20,8 +21,16 @@ router.post(
   ]),
   createProduct
 );
-
-router.get("/", authenticate, getAllProducts);
+router.post(
+  "/:id/duplicate",
+  authenticate,
+  uploadProductImages.fields([
+    { name: "images", maxCount: 5 },
+    { name: "thumbnail", maxCount: 1 },
+  ]),
+  duplicateProduct
+);
+router.get("/", getAllProducts);
 router.get("/:id", authenticate, getProductById);
 router.put(
   "/:id",
@@ -33,5 +42,7 @@ router.put(
   updateProduct
 );
 router.delete("/:id", authenticate, deleteProduct);
+
+
 
 export default router;
