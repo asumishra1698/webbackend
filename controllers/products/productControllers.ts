@@ -61,10 +61,30 @@ export const createProduct = async (
         : [];
     const thumbnail =
       req.files &&
-      (req.files as any).thumbnail &&
-      (req.files as any).thumbnail[0]
+        (req.files as any).thumbnail &&
+        (req.files as any).thumbnail[0]
         ? (req.files as any).thumbnail[0].filename
         : "";
+
+    // Parse variants if it's a string (handle double-encoded JSON)
+    if (typeof req.body.variants === "string") {
+      try {
+        let parsed = JSON.parse(req.body.variants);
+        if (typeof parsed === "string") {
+          parsed = JSON.parse(parsed);
+        }
+        if (!Array.isArray(parsed)) {
+          throw new Error("Parsed variants is not an array");
+        }
+        req.body.variants = parsed;
+      } catch (e) {
+        res.status(400).json({
+          status: false,
+          message: "Invalid variants format. Must be a JSON array.",
+        });
+        return;
+      }
+    }
 
     const product = await Product.create({
       ...req.body,
@@ -170,6 +190,49 @@ export const updateProduct = async (
   next: NextFunction
 ): Promise<void> => {
   try {
+    // Parse variants if it's a string (handle double-encoded JSON)
+    if (typeof req.body.variants === "string") {
+      try {
+        let parsed = JSON.parse(req.body.variants);
+        if (typeof parsed === "string") {
+          parsed = JSON.parse(parsed);
+        }
+        if (!Array.isArray(parsed)) {
+          throw new Error("Parsed variants is not an array");
+        }
+        req.body.variants = parsed;
+      } catch (e) {
+        res.status(400).json({
+          status: false,
+          message: "Invalid variants format. Must be a JSON array.",
+        });
+        return;
+      }
+    }
+
+    // Parse dimensions if it's a string
+    let dimensions = req.body.dimensions;
+    if (typeof dimensions === "string") {
+      try {
+        dimensions = JSON.parse(dimensions);
+      } catch (e) {
+        dimensions = { length: "", width: "", height: "" };
+      }
+      req.body.dimensions = dimensions;
+    }
+
+    // Handle images and thumbnail from multer (if new files are uploaded)
+    if (req.files && (req.files as any).images) {
+      req.body.images = (req.files as any).images.map((file: any) => file.filename);
+    }
+    if (
+      req.files &&
+      (req.files as any).thumbnail &&
+      (req.files as any).thumbnail[0]
+    ) {
+      req.body.thumbnail = (req.files as any).thumbnail[0].filename;
+    }
+
     const product = await Product.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
     });
@@ -186,7 +249,6 @@ export const updateProduct = async (
     next(err);
   }
 };
-
 // Delete Product
 export const deleteProduct = async (
   req: Request,
