@@ -8,7 +8,6 @@ function generateSlug(name: string): string {
     .replace(/(^-|-$)+/g, "");
 }
 
-// Create Product
 export const createProduct = async (
   req: Request,
   res: Response,
@@ -23,8 +22,7 @@ export const createProduct = async (
       });
       return;
     }
-
-    // SKU uniqueness check
+   
     if (req.body.sku) {
       const existingProduct = await Product.findOne({ sku: req.body.sku });
       if (existingProduct) {
@@ -35,14 +33,11 @@ export const createProduct = async (
         return;
       }
     }
-
-    // Convert price and salePrice to numbers
+    
     const price = Number(req.body.price);
     const salePrice = req.body.salePrice
       ? Number(req.body.salePrice)
       : undefined;
-
-    // Validation: salePrice should always be less than price
     if (salePrice !== undefined && salePrice >= price) {
       res.status(400).json({
         status: false,
@@ -51,10 +46,7 @@ export const createProduct = async (
       return;
     }
 
-    // Generate slug from product name
     const slug = generateSlug(req.body.name);
-
-    // Handle images and thumbnail from multer
     const images =
       req.files && (req.files as any).images
         ? (req.files as any).images.map((file: any) => file.filename)
@@ -65,8 +57,6 @@ export const createProduct = async (
         (req.files as any).thumbnail[0]
         ? (req.files as any).thumbnail[0].filename
         : "";
-
-    // Parse variants if it's a string (handle double-encoded JSON)
     if (typeof req.body.variants === "string") {
       try {
         let parsed = JSON.parse(req.body.variants);
@@ -105,7 +95,6 @@ export const createProduct = async (
   }
 };
 
-// Get All Products
 export const getAllProducts = async (
   req: Request,
   res: Response,
@@ -120,8 +109,6 @@ export const getAllProducts = async (
       producttags,
       brand,
     } = req.query;
-
-    // Soft delete filter
     const query: any = { isDeleted: false };
 
     if (search) {
@@ -165,7 +152,6 @@ export const getAllProducts = async (
   }
 };
 
-// Get Single Product
 export const getProductById = async (
   req: Request,
   res: Response,
@@ -183,7 +169,6 @@ export const getProductById = async (
   }
 };
 
-// Update Product
 export const updateProduct = async (
   req: Request,
   res: Response,
@@ -208,8 +193,6 @@ export const updateProduct = async (
         return;
       }
     }
-
-    // Parse dimensions if it's a string
     let dimensions = req.body.dimensions;
     if (typeof dimensions === "string") {
       try {
@@ -219,8 +202,6 @@ export const updateProduct = async (
       }
       req.body.dimensions = dimensions;
     }
-
-    // Handle images and thumbnail from multer (if new files are uploaded)
     if (req.files && (req.files as any).images) {
       req.body.images = (req.files as any).images.map((file: any) => file.filename);
     }
@@ -248,15 +229,14 @@ export const updateProduct = async (
     next(err);
   }
 };
-// Delete Product
+
 export const deleteProduct = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
-    // Soft delete: set isDeleted and deletedAt
-    const product = await Product.findByIdAndUpdate(
+     const product = await Product.findByIdAndUpdate(
       req.params.id,
       { isDeleted: true, deletedAt: new Date() },
       { new: true }
