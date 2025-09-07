@@ -408,35 +408,30 @@ export const importProductsFromCSV = async (
   res: Response,
   next: NextFunction
 ): Promise<void> => {
-  try {   
+  try {
     if (!req.file) {
       res.status(400).json({ status: false, message: "CSV file is required" });
       return;
     }
-
     const products: any[] = [];
     fs.createReadStream(req.file.path)
       .pipe(parse({ columns: true, trim: true }))
       .on("data", (row) => {
-        // Parse ObjectId arrays
         ["productcategory", "producttags", "reviews"].forEach((field) => {
           if (row[field] && typeof row[field] === "string") {
             row[field] = row[field].split(";").map((id: string) => id.trim());
           }
         });
-        // Parse single ObjectId fields
         ["brand", "vendor"].forEach((field) => {
           if (row[field] && typeof row[field] === "string") {
             row[field] = row[field].trim();
           }
         });
-        // Parse boolean fields
         ["isFeatured", "isActive", "isDeleted"].forEach((field) => {
           if (row[field] && typeof row[field] === "string") {
             row[field] = row[field].toLowerCase() === "true";
           }
         });
-        // Parse variants JSON
         if (row.variants && typeof row.variants === "string") {
           try {
             row.variants = JSON.parse(row.variants);
@@ -444,11 +439,9 @@ export const importProductsFromCSV = async (
             row.variants = [];
           }
         }
-        // Parse images array
         if (row.images && typeof row.images === "string") {
           row.images = row.images.split(";").map((img: string) => img.trim());
         }
-        // Parse dimensions JSON
         if (row.dimensions && typeof row.dimensions === "string") {
           try {
             row.dimensions = JSON.parse(row.dimensions);
@@ -460,12 +453,7 @@ export const importProductsFromCSV = async (
       })
       .on("end", async () => {
         try {
-          // Debug: log products before insert
-          console.log("Products to insert:", products);
-
-          // Insert and get result
           const result = await Product.insertMany(products, { ordered: false });
-
           res.status(201).json({
             status: true,
             message: "Products imported successfully",
@@ -473,8 +461,6 @@ export const importProductsFromCSV = async (
             inserted: result,
           });
         } catch (err: any) {
-          // Debug: log error
-          console.error("InsertMany Error:", err);
           res.status(500).json({
             status: false,
             message: "Failed to save products",
