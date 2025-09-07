@@ -189,8 +189,7 @@ export const updateProduct = async (
   res: Response,
   next: NextFunction
 ): Promise<void> => {
-  try {
-    // Parse variants if it's a string (handle double-encoded JSON)
+  try {    
     if (typeof req.body.variants === "string") {
       try {
         let parsed = JSON.parse(req.body.variants);
