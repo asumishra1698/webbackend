@@ -25,7 +25,6 @@ export const createProduct = async (
       });
       return;
     }
-
     if (req.body.sku) {
       const existingProduct = await Product.findOne({ sku: req.body.sku });
       if (existingProduct) {
@@ -36,7 +35,6 @@ export const createProduct = async (
         return;
       }
     }
-
     const price = Number(req.body.price);
     const salePrice = req.body.salePrice
       ? Number(req.body.salePrice)
@@ -48,7 +46,6 @@ export const createProduct = async (
       });
       return;
     }
-
     const slug = generateSlug(req.body.name);
     const images =
       req.files && (req.files as any).images
@@ -78,7 +75,6 @@ export const createProduct = async (
         return;
       }
     }
-
     const product = await Product.create({
       ...req.body,
       price,
@@ -87,7 +83,6 @@ export const createProduct = async (
       images,
       thumbnail,
     });
-
     res.status(201).json({
       status: true,
       message: "Product created successfully",
@@ -109,8 +104,6 @@ export const duplicateProduct = async (
       res.status(404).json({ status: false, message: "Original product not found" });
       return;
     }
-
-    // Handle new images/thumbnail if uploaded, else copy from original
     let images = Array.isArray(originalProduct.images)
       ? [...originalProduct.images]
       : [];
@@ -125,8 +118,6 @@ export const duplicateProduct = async (
     ) {
       thumbnail = (req.files as any).thumbnail[0].filename;
     }
-
-    // Remove _id, createdAt, updatedAt, deletedAt
     const {
       _id,
       createdAt,
@@ -134,8 +125,6 @@ export const duplicateProduct = async (
       deletedAt,
       ...rest
     } = originalProduct;
-
-    // Build new product data
     const newProductData = {
       ...rest,
       name: originalProduct.name + " Copy",
@@ -161,12 +150,9 @@ export const duplicateProduct = async (
         ? { ...originalProduct.dimensions }
         : { length: 0, width: 0, height: 0 },
       isDeleted: false,
-      deletedAt: undefined,
-      // All other fields are copied by spread
+      deletedAt: undefined,    
     };
-
     const duplicatedProduct = await Product.create(newProductData);
-
     res.status(201).json({
       status: true,
       message: "Product duplicated successfully",
@@ -192,7 +178,6 @@ export const getAllProducts = async (
       brand,
     } = req.query;
     const query: any = { isDeleted: false };
-
     if (search) {
       query.name = { $regex: search, $options: "i" };
     }
@@ -207,11 +192,9 @@ export const getAllProducts = async (
     if (brand) {
       query.brand = brand;
     }
-
     const pageNum = parseInt(page as string, 10);
     const limitNum = parseInt(limit as string, 10);
     const skip = (pageNum - 1) * limitNum;
-
     const products = await Product.find(query)
       .populate("productcategory")
       .populate("producttags")
@@ -221,7 +204,6 @@ export const getAllProducts = async (
       .limit(limitNum)
       .lean();
     const total = await Product.countDocuments(query);
-
     res.status(200).json({
       status: true,
       products,
@@ -348,8 +330,6 @@ export const exportAllProducts = async (
       .populate("producttags")
       .populate("brand")
       .lean();
-
-    // All possible fields from your schema
     const fields = [
       "name",
       "slug",
@@ -390,7 +370,6 @@ export const exportAllProducts = async (
 
     const parser = new Parser({ fields });
     const csv = parser.parse(products);
-
     res.header("Content-Type", "text/csv");
     res.attachment("products.csv");
     res.status(200).send(csv);

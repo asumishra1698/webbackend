@@ -15,8 +15,6 @@ export const createProductBrand = async (
       return;
     }
     const slug = req.body.name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-
-    // Handle logo image file
     let logo = "";
     if (req.file) {
       logo = req.file.filename;
@@ -35,7 +33,6 @@ export const createProductBrand = async (
   }
 };
 
-// Get All ProductBrands
 export const getAllProductBrands = async (
   req: Request,
   res: Response,
@@ -43,11 +40,7 @@ export const getAllProductBrands = async (
 ) => {
   try {
     const { search, page = 1, limit = 10 } = req.query;
-
-    // Soft delete filter
     const query: any = { isDeleted: false };
-
-    // Search by name or slug
     if (search) {
       const searchRegex = new RegExp(search as string, "i");
       query.$or = [{ name: searchRegex }, { slug: searchRegex }];
@@ -78,7 +71,6 @@ export const getAllProductBrands = async (
   }
 };
 
-// Get Single ProductBrand
 export const getProductBrandById = async (
   req: Request,
   res: Response,
@@ -98,7 +90,6 @@ export const getProductBrandById = async (
   }
 };
 
-// Update ProductBrand
 export const updateProductBrand = async (
   req: Request,
   res: Response,
@@ -127,14 +118,12 @@ export const updateProductBrand = async (
   }
 };
 
-// Delete ProductBrand
 export const deleteProductBrand = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    // Soft delete: set isDeleted and deletedAt
     const brand = await ProductBrand.findByIdAndUpdate(
       req.params.id,
       { isDeleted: true, deletedAt: new Date() },

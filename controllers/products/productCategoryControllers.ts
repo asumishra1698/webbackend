@@ -2,7 +2,6 @@ import ProductCategory from "../../models/products/productCategoryModel";
 import { Request, Response, NextFunction } from "express";
 import { Parser } from "json2csv";
 
-// Create ProductCategory
 export const createProductCategory = async (
   req: Request,
   res: Response,
@@ -17,7 +16,6 @@ export const createProductCategory = async (
     }
     const slug = req.body.name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
-    // Handle file uploads
     let bannerImage = "";
     let thumbnailImage = "";
     if (req.files) {
@@ -46,7 +44,6 @@ export const createProductCategory = async (
   }
 };
 
-// Get All ProductCategories
 export const getAllProductCategories = async (
   req: Request,
   res: Response,
@@ -85,7 +82,6 @@ export const getAllProductCategories = async (
   }
 };
 
-// Get Single ProductCategory
 export const getProductCategoryById = async (
   req: Request,
   res: Response,
@@ -105,7 +101,6 @@ export const getProductCategoryById = async (
   }
 };
 
-// Update ProductCategory
 export const updateProductCategory = async (
   req: Request,
   res: Response,
@@ -134,14 +129,12 @@ export const updateProductCategory = async (
   }
 };
 
-// Delete ProductCategory
 export const deleteProductCategory = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    // Soft delete: set isDeleted and deletedAt
     const category = await ProductCategory.findByIdAndUpdate(
       req.params.id,
       { isDeleted: true, deletedAt: new Date() },
@@ -168,8 +161,6 @@ export const exportAllProductCategories = async (
 ) => {
   try {
     const categories = await ProductCategory.find({}).lean();
-
-    // Define fields for CSV
     const fields = [
       "name",
       "slug",
@@ -178,13 +169,11 @@ export const exportAllProductCategories = async (
       "thumbnailImage",
       "isDeleted",
       "createdAt",
-      "updatedAt"
-      // Add more fields as needed
+      "updatedAt"      
     ];
 
     const parser = new Parser({ fields });
     const csv = parser.parse(categories);
-
     res.header("Content-Type", "text/csv");
     res.attachment("categories.csv");
     res.status(200).send(csv);
