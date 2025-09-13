@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import User from "../../models/auth/authModal";
 import { Request, Response, NextFunction } from "express";
 import nodemailer from "nodemailer";
+import ReferenceCategory from "../../models/referenceData/referenceModal";
 
 export const register = async (
   req: Request,
@@ -16,24 +17,21 @@ export const register = async (
       res.status(400).json({ message: "All fields are required" });
       return;
     }
+    const roleCategory = await ReferenceCategory.findOne({ cate_key: "role" });
+    const allowedRoles = roleCategory
+      ? roleCategory.items.filter((item: any) => item.is_active && !item.is_deleted).map((item: any) => item.key)
+      : [];
 
-    if (
-      role !== "admin" &&
-      role !== "superadmin" &&
-      role !== "customer" &&
-      role !== "user"
-    ) {
+    if (!allowedRoles.includes(role)) {
       res.status(400).json({
-        message:
-          "Role must be one of: 'admin', 'superadmin', 'customer', or 'user'",
+        message: `Role must be one of: ${allowedRoles.join(", ")}`,
       });
       return;
     }
-
-    if (role === "superadmin") {
-      const superadminCount = await User.countDocuments({ role: "superadmin" });
+    if (role === "super_admin") {
+      const superadminCount = await User.countDocuments({ role: "super_admin" });
       if (superadminCount >= 1) {
-        res.status(400).json({ message: "Only one superadmin is allowed." });
+        res.status(400).json({ message: "Only one super_admin is allowed." });
         return;
       }
     }
@@ -59,12 +57,20 @@ export const register = async (
         return;
       }
     }
-
-    // Username auto-generate logic
+    
     const namePart = name.replace(/\s+/g, "").toLowerCase().substring(0, 5);
     const mobilePart = mobile;
-    let username = `${namePart}_${mobilePart}`;
-    username = username.substring(0, 10);
+    let username = `${namePart}_${mobilePart}`.substring(0, 10);
+
+    let existingUsername = await User.findOne({ username });
+    if (existingUsername) {
+      username = `${username}_${Math.floor(100 + Math.random() * 900)}`;
+      existingUsername = await User.findOne({ username });
+      if (existingUsername) {
+        res.status(400).json({ message: "Duplicate value for field: username" });
+        return;
+      }
+    }
 
     let profilePic = "";
     if (req.file) {
@@ -82,7 +88,7 @@ export const register = async (
       profilePic,
     });
 
-    // Send welcome email after registration
+    // Send welcome email after registration (unchanged)
     try {
       const transporter = nodemailer.createTransport({
         service: "gmail",
@@ -106,7 +112,6 @@ export const register = async (
 
       await transporter.sendMail(mailOptions);
     } catch (emailErr) {
-      // Email error ko ignore kar sakte hain ya log kar sakte hain
       console.error("Registration email error:", emailErr);
     }
 
@@ -140,6 +145,20 @@ export const login = async (
       res.status(400).json({
         status: false,
         message: "Email or mobile, password, and role are required",
+      });
+      return;
+    }
+
+    // Fetch allowed roles from reference data
+    const roleCategory = await ReferenceCategory.findOne({ cate_key: "role" });
+    const allowedRoles = roleCategory
+      ? roleCategory.items.filter((item: any) => item.is_active && !item.is_deleted).map((item: any) => item.key)
+      : [];
+
+    if (!allowedRoles.includes(role)) {
+      res.status(400).json({
+        status: false,
+        message: `Role must be one of: ${allowedRoles.join(", ")}`,
       });
       return;
     }
@@ -343,9 +362,8 @@ export const forgotpassword = async (
         <img src="https://cdn-icons-png.flaticon.com/512/2919/2919600.png" alt="OTP" width="64" style="margin-bottom: 16px;" />
         <h2 style="color: #007bff; margin-bottom: 8px;">Password Reset OTP</h2>
       </div>
-      <p style="font-size: 1.1em; color: #333;">Hello <b>${
-        user.name || user.email
-      }</b>,</p>
+      <p style="font-size: 1.1em; color: #333;">Hello <b>${user.name || user.email
+        }</b>,</p>
       <p style="color: #444;">Use the following OTP to reset your password:</p>
       <div style="font-size: 2.2em; font-weight: bold; letter-spacing: 8px; margin: 24px 0; color: #222; text-align:center;">
         ${otp}

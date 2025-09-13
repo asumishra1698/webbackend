@@ -25,8 +25,6 @@ const UserSchema: Schema = new Schema(
     mobile: { type: String, required: true, unique: true },
     role: {
       type: String,
-      enum: ["superadmin", "admin", "customer", "user"],
-      default: "user",
       required: true,
     },
     username: { type: String, required: true, unique: true },

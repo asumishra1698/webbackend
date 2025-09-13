@@ -17,7 +17,7 @@ export const authenticate = (req: AuthRequest, res: Response, next: NextFunction
     const decoded: any = jwt.verify(token, process.env.JWT_SECRET as string);
     req.user = decoded;
 
-    if (decoded.role === "admin" || decoded.role === "superadmin" || decoded.role === "user") {
+    if (decoded.role === "admin" || decoded.role === "super_admin" || decoded.role === "user") {
       next();
     } else {
       res.status(403).json({ message: "Access denied" });

@@ -98,3 +98,20 @@ export const uploadBrandLogoImages = multer({
   fileFilter: fileFilter,
   limits: { fileSize: 5 * 1024 * 1024 },
 });
+
+// Reference icon storage config
+const referenceIconStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, path.join(__dirname, "../uploads/reference-icons"));
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + "-" + file.originalname.replace(/\s+/g, "_"));
+  },
+});
+
+export const uploadReferenceIcon = multer({
+  storage: referenceIconStorage,
+  fileFilter: fileFilter,
+  limits: { fileSize: 2 * 1024 * 1024 },
+});
