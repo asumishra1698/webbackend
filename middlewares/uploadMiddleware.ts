@@ -115,3 +115,33 @@ export const uploadReferenceIcon = multer({
   fileFilter: fileFilter,
   limits: { fileSize: 2 * 1024 * 1024 },
 });
+
+// Project media storage config
+const projectMediaStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, path.join(__dirname, "../uploads/projects"));
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + "-" + file.originalname.replace(/\s+/g, "_"));
+  },
+});
+
+// Accept images, videos, pdfs for project media
+const projectMediaFileFilter = (req: any, file: any, cb: any) => {
+  if (
+    file.mimetype.startsWith("image") ||
+    file.mimetype.startsWith("video") ||
+    file.mimetype.endsWith("pdf")
+  ) {
+    cb(null, true);
+  } else {
+    cb(new Error("Only image, video, and pdf files are allowed!"), false);
+  }
+};
+
+export const uploadProjectMedia = multer({
+  storage: projectMediaStorage,
+  fileFilter: projectMediaFileFilter,
+  limits: { fileSize: 20 * 1024 * 1024 }, // 20MB max per file
+});

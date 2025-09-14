@@ -20,6 +20,7 @@ import productCategoryRoutes from "./routes/products/productCategoryRoutes";
 import productTagRoutes from "./routes/products/productTagRoutes";
 import productBrandRoutes from "./routes/products/productBrandRoutes";
 import referenceRoutes from "./routes/referenceData/referenceRoutes";
+import projectRoutes from "./routes/projects/projectRoutes";
 
 dotenv.config();
 connectDB();
@@ -45,6 +46,7 @@ app.use("/api/product-categories", productCategoryRoutes);
 app.use("/api/product-tags", productTagRoutes);
 app.use("/api/product-brands", productBrandRoutes);
 app.use("/api/reference", referenceRoutes);
+app.use("/api/projects", projectRoutes);
 
 app.use(errorHandler);
 
