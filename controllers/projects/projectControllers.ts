@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { Parser } from "json2csv";
 import { Request, Response, NextFunction } from "express";
 import Project from "../../models/projects/projectModel";
 import ReferenceCategory from "../../models/referenceData/referenceModal";
@@ -30,13 +31,9 @@ export const createProject = async (
             last_modified_by,
             last_modified_on_date,
         } = req.body;
-
-        // Parse numbers and booleans from strings
         const radius = Number(radius_meters);
         const active = is_active === "true" || is_active === true;
         const stat = status === "true" || status === true;
-
-        // Parse location if sent as JSON string
         let loc = location;
         if (typeof location === "string") {
             try {
@@ -45,8 +42,6 @@ export const createProject = async (
                 loc = {};
             }
         }
-
-        // Parse media if sent as JSON string
         let mediaArr: any[] = [];
         if (req.body.media) {
             try {
@@ -70,6 +65,7 @@ export const createProject = async (
                 if (Array.isArray((req.files as any)[field])) {
                     (req.files as any)[field].forEach((file: any) => {
                         mediaArr.push({
+                            _id: new mongoose.Types.ObjectId(),
                             img_url: `http://localhost:5000/uploads/projects/${file.filename}`,
                             doc_type: field,
                             description: file.originalname,
@@ -99,14 +95,25 @@ export const createProject = async (
             return;
         }
 
-        function generateProjectCode(): string {
+        async function generateProjectCode(): Promise<string> {
             const year = new Date().getFullYear();
-            const randomNum = Math.floor(1000 + Math.random() * 9000);
-            return `PRJ-${year}-${randomNum}`;
+            const lastProject = await Project.findOne({ project_code: { $regex: `^PRJ-${year}-` } })
+                .sort({ createdAt: -1 });
+            let serial = 1;
+            if (lastProject && lastProject.project_code) {
+                const parts = lastProject.project_code.split("-");
+                if (parts.length === 3) {
+                    const lastSerial = parseInt(parts[2], 10);
+                    if (!isNaN(lastSerial)) serial = lastSerial + 1;
+                }
+            }
+            const serialStr = serial.toString().padStart(4, "0");
+            return `PRJ-${year}-${serialStr}`;
         }
-        const code = project_code && project_code.trim() !== "" ? project_code : generateProjectCode();
 
-        // Create project
+        // ...inside createProject...
+        const code = project_code && project_code.trim() !== "" ? project_code : await generateProjectCode();
+
         const project = await Project.create({
             developer,
             project_name,
@@ -277,6 +284,7 @@ export const updateProject = async (
                 if (Array.isArray((req.files as any)[field])) {
                     (req.files as any)[field].forEach((file: any) => {
                         mediaArr.push({
+                            _id: new mongoose.Types.ObjectId(),
                             img_url: `http://localhost:5000/uploads/projects/${file.filename}`,
                             doc_type: field,
                             description: file.originalname,
@@ -291,6 +299,25 @@ export const updateProject = async (
             const existingProject = await Project.findById(id);
             const oldMedia = existingProject?.media || [];
             updateData.media = [...oldMedia, ...mediaArr];
+        }
+
+        if (req.body.project_type) {
+            const category = await ReferenceCategory.findOne({ cate_key: "project_type" });
+            if (category) {
+                const projectTypeItem = category.items.find(
+                    (item: any) =>
+                        item._id.toString() === req.body.project_type &&
+                        item.is_active &&
+                        !item.is_deleted
+                );
+                if (projectTypeItem) {
+                    updateData.project_type = {
+                        ...projectTypeItem,
+                        category: category.category,
+                        cate_key: category.cate_key,
+                    };
+                }
+            }
         }
 
         const project = await Project.findOneAndUpdate(
@@ -337,6 +364,83 @@ export const updateProjectStatus = async (
         res.status(200).json({
             success: true,
             message: "Project status updated successfully",
+            data: project,
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+
+export const exportAllProjectsCSV = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> => {
+    try {
+        const projects = await Project.find({ is_deleted: false }).lean();
+        const exportData = projects.map(project => ({
+            _id: project._id,
+            developer: project.developer,
+            project_name: project.project_name,
+            address: project.address,
+            city: project.city,
+            state: project.state,
+            radius_meters: project.radius_meters,
+            project_type: project.project_type?.name || "",
+            project_type_key: project.project_type?.key || "",
+            status: project.status,
+            is_active: project.is_active,
+            is_deleted: project.is_deleted,
+            Address: project.address,
+            City: project.city,
+            contact_person: project.contact_person,
+            contact_number: project.contact_number,
+            contact_email: project.contact_email,
+            project_code: project.project_code,
+            project_start_date: project.project_start_date,
+            project_completion_date: project.project_completion_date,
+            created_by: project.created_by,
+            created_on_date: project.created_on_date,
+            media: Array.isArray(project.media)
+                ? project.media.map(m => m.img_url).join(", ")
+                : "",
+        }));
+
+        const fields = Object.keys(exportData[0] || {});
+        const json2csvParser = new Parser({ fields });
+        const csv = json2csvParser.parse(exportData);
+
+        res.header("Content-Type", "text/csv");
+        res.attachment("projects.csv");
+        res.send(csv);
+    } catch (err) {
+        next(err);
+    }
+};
+
+export const deleteProjectMedia = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> => {
+    try {
+        const { id, mediaId } = req.params;
+        const project = await Project.findOne({ _id: id, is_deleted: false });
+        if (!project) {
+            res.status(404).json({ success: false, message: "Project not found" });
+            return;
+        }
+        const updatedMedia = project.media.filter(
+            (m: any) => m._id?.toString() !== mediaId
+        );
+
+        project.media = updatedMedia;
+        await project.save();
+
+        res.status(200).json({
+            success: true,
+            message: "Project media deleted successfully",
             data: project,
         });
     } catch (err) {
