@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
+import { v4 as uuidv4 } from "uuid";
 import jwt from "jsonwebtoken";
 import User from "../../models/auth/authModal";
 import { Request, Response, NextFunction } from "express";
@@ -12,31 +13,60 @@ export const register = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { name, email, mobile, password, role } = req.body;
-    if (!name || !email || !password || !role) {
+    const { name, email, mobile, password, role, dateOfBirth, department, gender } = req.body;
+    if (!name || !email || !password || !role || !dateOfBirth || !mobile || !gender || !department) {
       res.status(400).json({ message: "All fields are required" });
       return;
     }
+
+    // Fetch role reference object
     const roleCategory = await ReferenceCategory.findOne({ cate_key: "role" });
     const allowedRoles = roleCategory
       ? roleCategory.items.filter((item: any) => item.is_active && !item.is_deleted).map((item: any) => item.key)
       : [];
-
     if (!allowedRoles.includes(role)) {
       res.status(400).json({
         message: `Role must be one of: ${allowedRoles.join(", ")}`,
       });
       return;
     }
+    let roleObj: any = null;
+    if (roleCategory && role) {
+      roleObj = roleCategory.items.find(
+        (item: any) => item.key === role && item.is_active && !item.is_deleted
+      ) || null;
+    }
+
+    // Fetch department reference object
+    const departmentCategory = await ReferenceCategory.findOne({ cate_key: "department" });
+    let allowedDepartments: string[] = [];
+    if (departmentCategory) {
+      allowedDepartments = departmentCategory.items
+        .filter((item: any) => item.is_active && !item.is_deleted)
+        .map((item: any) => item.key);
+    }
+    if (department && !allowedDepartments.includes(department)) {
+      res.status(400).json({
+        message: `Department must be one of: ${allowedDepartments.join(", ")}`,
+      });
+      return;
+    }
+    let departmentObj: any = null;
+    if (departmentCategory && department) {
+      departmentObj = departmentCategory.items.find(
+        (item: any) => item.key === department && item.is_active && !item.is_deleted
+      ) || null;
+    }
+
     if (role === "super_admin") {
-      const superadminCount = await User.countDocuments({ role: "super_admin" });
+      const superadminCount = await User.countDocuments({ "role.key": "super_admin" });
       if (superadminCount >= 1) {
         res.status(400).json({ message: "Only one super_admin is allowed." });
         return;
       }
     }
     if (role === "admin") {
-      const adminCount = await User.countDocuments({ role: "admin" });
+      const adminCount = await User.countDocuments({ "role.key": "admin" });
       if (adminCount >= 2) {
         res.status(400).json({ message: "Only two admins are allowed." });
         return;
@@ -57,7 +87,7 @@ export const register = async (
         return;
       }
     }
-    
+
     const namePart = name.replace(/\s+/g, "").toLowerCase().substring(0, 5);
     const mobilePart = mobile;
     let username = `${namePart}_${mobilePart}`.substring(0, 10);
@@ -78,14 +108,21 @@ export const register = async (
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    const user_guid = uuidv4();
     const user = await User.create({
       name,
       email,
       mobile,
       password: hashedPassword,
-      role,
+      role: roleObj, // store reference object
+      role_id: roleObj?._id || "", // store reference id
       username,
       profilePic,
+      dateOfBirth,
+      department: departmentObj, // store reference object
+      department_id: departmentObj?._id || "", // store reference id
+      gender,
+      user_guid,
     });
 
     // Send welcome email after registration (unchanged)
@@ -119,12 +156,18 @@ export const register = async (
       message: "User registered successfully",
       user: {
         id: user._id,
+        user_guid: user.user_guid,
         name: user.name,
         email: user.email,
         mobile: user.mobile,
         role: user.role,
+        role_id: user.role_id,
         username: user.username,
         profilePic: user.profilePic,
+        dateOfBirth: user.dateOfBirth,
+        department: user.department,
+        department_id: user.department_id,
+        gender: user.gender,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
       },
@@ -148,8 +191,6 @@ export const login = async (
       });
       return;
     }
-
-    // Fetch allowed roles from reference data
     const roleCategory = await ReferenceCategory.findOne({ cate_key: "role" });
     const allowedRoles = roleCategory
       ? roleCategory.items.filter((item: any) => item.is_active && !item.is_deleted).map((item: any) => item.key)
@@ -180,8 +221,7 @@ export const login = async (
       return;
     }
 
-    // Case-insensitive role check
-    if (!role || user.role.toLowerCase() !== role.toLowerCase()) {
+    if (!role || user.role?.key?.toLowerCase() !== role.toLowerCase()) {
       res.status(403).json({
         status: false,
         message: "Role mismatch or not provided",
@@ -440,7 +480,7 @@ export const getAllUsers = async (
     const { role, search, page = 1, limit = 10 } = req.query;
     const query: any = {};
     if (role) {
-      query.role = role;
+      query["role.key"] = role;
     }
     if (search) {
       const searchRegex = new RegExp(search as string, "i");
@@ -460,26 +500,51 @@ export const getAllUsers = async (
       .limit(limitNum)
       .lean();
     const totalUsers = await User.countDocuments(query);
-    const usersWithId = users.map((u: any) => ({
-      id: u._id,
-      name: u.name,
-      email: u.email,
-      mobile: u.mobile,
-      role: u.role,
-      username: u.username,
-      profilePic: u.profilePic,
+
+    const usersWithId = users.map((u: any, idx: number) => ({
+      _id: u._id,
+      user_id: (skip + idx + 1).toString(),
+      user_guid: u.user_guid,
+      user_name: u.username || "",
+      full_name: u.name || "",
+      reporting_head_id: u.reporting_head_id || null,
+      profile_picture: u.profilePic || "",
+      role_id: u.role?._id || "",
+      department_id: u.department?._id || "",
+      location_id: u.location_id || "",
+      gender: u.gender || "",
+      date_of_birth: u.dateOfBirth || "",
+      mobile_number: u.mobile || "",
+      email_address: u.email || "",
+      is_active: u.is_active !== undefined ? u.is_active : true,
+      is_deleted: u.is_deleted !== undefined ? u.is_deleted : false,
+      created_by: u.created_by || "",
+      created_on_date: u.created_on_date || u.createdAt || "",
+      status: u.status || "active",
+      login_policy: u.login_policy || "single",
+      last_visitor_asigned_on: u.last_visitor_asigned_on || "",
       createdAt: u.createdAt,
       updatedAt: u.updatedAt,
+      __v: u.__v,
+      last_modified_on_date: u.last_modified_on_date || "",
+      broker_firm_id: u.broker_firm_id || "",
+      role: typeof u.role === "object" && u.role !== null ? u.role : {},
+      department: typeof u.department === "object" && u.department !== null ? u.department : {},
+      role_name: u.role?.name || "",
+      department_name: u.department?.name || "",
     }));
 
     res.status(200).json({
-      status: true,
-      message: "Users fetched successfully",
-      users: usersWithId,
-      totalUsers,
-      page: pageNum,
-      Pages: Math.ceil(totalUsers / limitNum),
-      limit: limitNum,
+      success: true,
+      message: "User list fetched successfully",
+      data: {
+        total: totalUsers,
+        page: pageNum,
+        limit: limitNum,
+        totalPages: Math.ceil(totalUsers / limitNum),
+        data: usersWithId,
+      },
+      statusCode: 200,
     });
   } catch (err) {
     next(err);
@@ -509,7 +574,7 @@ export const getProfile = async (
         name: user.name,
         email: user.email,
         mobile: user.mobile,
-        role: user.role,
+        role: user.role, // full reference object
         username: user.username,
         profilePic: user.profilePic,
         createdAt: user.createdAt,

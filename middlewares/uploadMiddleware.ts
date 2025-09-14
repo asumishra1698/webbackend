@@ -1,7 +1,6 @@
 import multer from "multer";
 import path from "path";
 
-// Blog images storage config
 const blogImageStorage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, path.join(__dirname, "../uploads"));
@@ -31,7 +30,6 @@ export const uploadBlogImages = multer({
   limits: { fileSize: 5 * 1024 * 1024 },
 });
 
-// Profile pic storage config
 const profilePicStorage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, path.join(__dirname, "../uploads/profile"));
@@ -48,7 +46,6 @@ export const uploadProfilePic = multer({
   limits: { fileSize: 2 * 1024 * 1024 },
 });
 
-// Product images storage config
 const productImageStorage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, path.join(__dirname, "../uploads/products"));
@@ -65,7 +62,6 @@ export const uploadProductImages = multer({
   limits: { fileSize: 5 * 1024 * 1024 },
 });
 
-// Category images storage config
 const categoryImageStorage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, path.join(__dirname, "../uploads/productcategories"));
@@ -82,7 +78,6 @@ export const uploadCategoryImages = multer({
   limits: { fileSize: 5 * 1024 * 1024 },
 });
 
-// Brand logo storage config
 const brandLogoImagesStorage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, path.join(__dirname, "../uploads/productbrands"));
@@ -99,7 +94,6 @@ export const uploadBrandLogoImages = multer({
   limits: { fileSize: 5 * 1024 * 1024 },
 });
 
-// Reference icon storage config
 const referenceIconStorage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, path.join(__dirname, "../uploads/reference-icons"));
@@ -116,7 +110,6 @@ export const uploadReferenceIcon = multer({
   limits: { fileSize: 2 * 1024 * 1024 },
 });
 
-// Project media storage config
 const projectMediaStorage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, path.join(__dirname, "../uploads/projects"));
@@ -127,7 +120,6 @@ const projectMediaStorage = multer.diskStorage({
   },
 });
 
-// Accept images, videos, pdfs for project media
 const projectMediaFileFilter = (req: any, file: any, cb: any) => {
   if (
     file.mimetype.startsWith("image") ||
@@ -143,5 +135,5 @@ const projectMediaFileFilter = (req: any, file: any, cb: any) => {
 export const uploadProjectMedia = multer({
   storage: projectMediaStorage,
   fileFilter: projectMediaFileFilter,
-  limits: { fileSize: 20 * 1024 * 1024 }, // 20MB max per file
+  limits: { fileSize: 20 * 1024 * 1024 },
 });
