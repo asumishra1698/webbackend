@@ -18,8 +18,6 @@ export const register = async (
       res.status(400).json({ message: "All fields are required" });
       return;
     }
-
-    // Fetch role reference object
     const roleCategory = await ReferenceCategory.findOne({ cate_key: "role" });
     const allowedRoles = roleCategory
       ? roleCategory.items.filter((item: any) => item.is_active && !item.is_deleted).map((item: any) => item.key)
@@ -36,8 +34,6 @@ export const register = async (
         (item: any) => item.key === role && item.is_active && !item.is_deleted
       ) || null;
     }
-
-    // Fetch department reference object
     const departmentCategory = await ReferenceCategory.findOne({ cate_key: "department" });
     let allowedDepartments: string[] = [];
     if (departmentCategory) {
@@ -114,18 +110,17 @@ export const register = async (
       email,
       mobile,
       password: hashedPassword,
-      role: roleObj, // store reference object
-      role_id: roleObj?._id || "", // store reference id
+      role: roleObj,
+      role_id: roleObj?._id || "",
       username,
       profilePic,
       dateOfBirth,
-      department: departmentObj, // store reference object
-      department_id: departmentObj?._id || "", // store reference id
+      department: departmentObj,
+      department_id: departmentObj?._id || "",
       gender,
       user_guid,
     });
 
-    // Send welcome email after registration (unchanged)
     try {
       const transporter = nodemailer.createTransport({
         service: "gmail",
