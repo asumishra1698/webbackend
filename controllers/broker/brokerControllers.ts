@@ -4,6 +4,7 @@ import User from "../../models/auth/authModal";
 import ReferenceCategory from "../../models/referenceData/referenceModal";
 import nodemailer from "nodemailer";
 import bcrypt from "bcrypt";
+import { Parser as Json2csvParser } from "json2csv";
 const BASE_URL = process.env.BASE_URL;
 
 async function hydrateCompanyType(company_type: any) {
@@ -456,6 +457,66 @@ export const deleteBroker = async (
             message: "Broker soft deleted successfully",
             data: broker,
         });
+    } catch (err) {
+        next(err);
+    }
+};
+
+
+
+export const exportBrokersCSV = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> => {
+    console.log("Export brokers CSV endpoint hit");
+    try {
+        const brokers = await Broker.find({
+            $or: [{ is_deleted: false }, { is_deleted: { $exists: false } }]
+        }).lean();
+
+        for (const broker of brokers) {
+            broker.company_type = await hydrateCompanyType(broker.company_type);
+        }
+
+        const exportData = brokers.map(broker => ({
+            broker_code: broker.broker_code,
+            company_name: broker.company_name,
+            broker_name: broker.broker_name,
+            owner_name: broker.owner_name,
+            mobile_number: broker.mobile_number,
+            email_address: broker.email_address,
+            alt_mobile_number: broker.alt_mobile_number,
+            alt_email_address: broker.alt_email_address,
+            website_url: broker.website_url,
+            rera_number: broker.rera_number,
+            company_type: broker.company_type?.name || "",
+            company_type_key: broker.company_type?.key || "",
+            company_type_category: broker.company_type?.category || "",
+            company_type_cate_key: broker.company_type?.cate_key || "",
+            office_address: broker.office_address
+                ? `${broker.office_address.line1 || ""}, ${broker.office_address.city || ""}, ${broker.office_address.state || ""}, ${broker.office_address.zip || ""}`
+                : "",
+            sales_rm: broker.sales_rm_id?.full_name || "",
+            sales_rm_mobile: broker.sales_rm_id?.mobile_number || "",
+            sales_rm_email: broker.sales_rm_id?.email_address || "",
+            status: broker.status,
+            createdAt: broker.createdAt,
+            updatedAt: broker.updatedAt,            
+        }));
+
+        if (!exportData.length) {
+            res.status(404).json({ message: "No brokers found to export." });
+            return;
+        }
+
+        const fields = Object.keys(exportData[0]);
+        const json2csvParser = new Json2csvParser({ fields });
+        const csv = json2csvParser.parse(exportData);
+
+        res.header("Content-Type", "text/csv");
+        res.attachment("brokers.csv");
+        res.send(csv);
     } catch (err) {
         next(err);
     }

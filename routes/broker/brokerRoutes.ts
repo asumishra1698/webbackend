@@ -1,6 +1,6 @@
 import express from "express";
 import multer from "multer";
-import { createBroker, getAllBrokers, getBrokerById, updateBroker, deleteBroker } from "../../controllers/broker/brokerControllers";
+import { createBroker, getAllBrokers, getBrokerById, updateBroker, deleteBroker, exportBrokersCSV } from "../../controllers/broker/brokerControllers";
 import { authenticate } from "../../middlewares/authMiddleware";
 const router = express.Router();
 const upload = multer({ dest: "uploads/brokers/" });
@@ -24,6 +24,7 @@ router.post(
     createBroker
 );
 router.get("/", authenticate, getAllBrokers);
+router.get("/export/csv", authenticate, exportBrokersCSV);
 router.get("/:id", authenticate, getBrokerById);
 router.put("/:id", authenticate, upload.fields([
     { name: "owner_photo", maxCount: 1 },
