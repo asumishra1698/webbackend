@@ -1,6 +1,6 @@
 import express from "express";
 import multer from "multer";
-import { createBroker, getAllBrokers } from "../../controllers/broker/brokerControllers";
+import { createBroker, getAllBrokers, getBrokerById } from "../../controllers/broker/brokerControllers";
 import { authenticate } from "../../middlewares/authMiddleware";
 const router = express.Router();
 const upload = multer({ dest: "uploads/brokers/" });
@@ -24,4 +24,5 @@ router.post(
     createBroker
 );
 router.get("/", authenticate, getAllBrokers);
+router.get("/:id", authenticate, getBrokerById);
 export default router;

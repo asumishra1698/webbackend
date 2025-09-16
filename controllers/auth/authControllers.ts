@@ -581,6 +581,52 @@ export const getProfile = async (
   }
 };
 
+export const getAllSalesRms = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { search, page = 1, limit = 10 } = req.query;
+    const query: any = { "role.key": "sales_rm" };
+
+    if (search) {
+      const searchRegex = new RegExp(search as string, "i");
+      query.$or = [
+        { name: searchRegex },
+        { email: searchRegex },
+        { mobile: searchRegex },
+      ];
+    }
+
+    const pageNum = parseInt(page as string, 10);
+    const limitNum = parseInt(limit as string, 10);
+    const skip = (pageNum - 1) * limitNum;
+
+    const total = await User.countDocuments(query);
+    const salesRms = await User.find(query)
+      .select("-password -otp -otpExpiry -token")
+      .skip(skip)
+      .limit(limitNum)
+      .lean();
+
+    res.status(200).json({
+      success: true,
+      message: "Sales RM list fetched successfully",
+      data: {
+        total,
+        page: pageNum,
+        limit: limitNum,
+        totalPages: Math.ceil(total / limitNum),
+        data: salesRms,
+      },
+      statusCode: 200,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 export default {
   register,
   login,
@@ -591,4 +637,5 @@ export default {
   getRole,
   getAllUsers,
   getProfile,
+  getAllSalesRms,
 };

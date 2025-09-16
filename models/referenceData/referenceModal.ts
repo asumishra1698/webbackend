@@ -4,6 +4,8 @@ interface IReferenceItem {
   _id: string;
   key: string;
   name: string;
+  category?: string;
+  cate_key?: string;
   description: string;
   sort_order: number;
   is_active: boolean;
@@ -14,6 +16,7 @@ interface IReferenceItem {
   };
   createdAt: Date;
   updatedAt: Date;
+  
 }
 
 interface IReferenceCategory extends Document {

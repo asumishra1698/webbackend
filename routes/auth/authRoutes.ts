@@ -1,5 +1,5 @@
 import express from "express";
-import authController from "../../controllers/auth/authControllers";
+import authController, { getAllSalesRms } from "../../controllers/auth/authControllers";
 import { authenticate } from "../../middlewares/authMiddleware";
 import { uploadProfilePic } from "../../middlewares/uploadMiddleware";
 
@@ -19,5 +19,6 @@ router.post("/reset-password", authController.resetpassword);
 router.get("/role", authenticate, authController.getRole);
 router.get("/all-users", authenticate, authController.getAllUsers);
 router.get("/profile", authenticate, authController.getProfile);
+router.get("/sales-rms", authenticate, getAllSalesRms);
 
 export default router;

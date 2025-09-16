@@ -52,14 +52,14 @@ export const createBroker = async (
             return;
         }
 
-        let officeAddressObj = req.body.office_address;
-        if (typeof officeAddressObj === "string") {
-            try {
-                officeAddressObj = JSON.parse(officeAddressObj);
-            } catch {
-                res.status(400).json({ message: "Invalid office_address format" });
-                return;
-            }
+        let officeAddressObj: any = req.body.office_address;
+        if (!officeAddressObj && req.body["office_address.line1"]) {
+            officeAddressObj = {
+                line1: req.body["office_address.line1"],
+                city: req.body["office_address.city"],
+                state: req.body["office_address.state"],
+                zip: req.body["office_address.zip"],
+            };
         }
 
         const documentTypes = [
@@ -83,21 +83,29 @@ export const createBroker = async (
                     const file = fileArr[0];
                     documents.push({
                         type,
-                        url: `/uploads/brokers/${file.filename}`,
+                        url: `http://localhost:5000/uploads/brokers/${file.filename}`,
                         name: file.originalname,
                         size: file.size
                     });
                 }
             });
         }
+
         const companyTypeCategory = await ReferenceCategory.findOne({ cate_key: "company_type" });
-        const companyTypeObj = companyTypeCategory?.items.find(
+        let companyTypeObj = companyTypeCategory?.items.find(
             (item: any) => item.key === company_type && item.is_active && !item.is_deleted
         );
         if (!companyTypeObj) {
             res.status(400).json({ message: "Invalid company_type" });
             return;
         }
+
+        companyTypeObj = {
+            ...companyTypeObj,
+            category: "Company Type",
+            cate_key: "company_type"
+        };
+
         const salesRM = await User.findById(sales_rm_id).lean();
         if (!salesRM) {
             res.status(400).json({ message: "Invalid sales_rm_id" });
@@ -238,6 +246,28 @@ export const getAllBrokers = async (
                 data: brokers,
             },
             statusCode: 200,
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+export const getBrokerById = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> => {
+    try {
+        const { id } = req.params;
+        const broker = await Broker.findById(id).lean();
+        if (!broker) {
+            res.status(404).json({ message: "Broker not found" });
+            return;
+        }
+        res.status(200).json({
+            success: true,
+            message: "Broker fetched successfully",
+            data: broker,
         });
     } catch (err) {
         next(err);
