@@ -21,6 +21,7 @@ import productTagRoutes from "./routes/products/productTagRoutes";
 import productBrandRoutes from "./routes/products/productBrandRoutes";
 import referenceRoutes from "./routes/referenceData/referenceRoutes";
 import projectRoutes from "./routes/projects/projectRoutes";
+import brokerRoutes from "./routes/broker/brokerRoutes";
 
 dotenv.config();
 connectDB();
@@ -47,6 +48,7 @@ app.use("/api/product-tags", productTagRoutes);
 app.use("/api/product-brands", productBrandRoutes);
 app.use("/api/reference", referenceRoutes);
 app.use("/api/projects", projectRoutes);
+app.use("/api/brokers", brokerRoutes);
 
 app.use(errorHandler);
 
