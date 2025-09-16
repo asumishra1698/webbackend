@@ -1,6 +1,6 @@
 import express from "express";
 import multer from "multer";
-import { createBroker, getAllBrokers, getBrokerById } from "../../controllers/broker/brokerControllers";
+import { createBroker, getAllBrokers, getBrokerById, updateBroker, deleteBroker } from "../../controllers/broker/brokerControllers";
 import { authenticate } from "../../middlewares/authMiddleware";
 const router = express.Router();
 const upload = multer({ dest: "uploads/brokers/" });
@@ -25,4 +25,18 @@ router.post(
 );
 router.get("/", authenticate, getAllBrokers);
 router.get("/:id", authenticate, getBrokerById);
+router.put("/:id", authenticate, upload.fields([
+    { name: "owner_photo", maxCount: 1 },
+    { name: "aadhar_card", maxCount: 1 },
+    { name: "pan_card", maxCount: 1 },
+    { name: "gst_certificate", maxCount: 1 },
+    { name: "office_photo", maxCount: 1 },
+    { name: "rera_certificate", maxCount: 1 },
+    { name: "letter_head", maxCount: 1 },
+    { name: "cancelled_cheque", maxCount: 1 },
+    { name: "agent_mou", maxCount: 1 }
+]), updateBroker);
+
+// Delete broker
+router.delete("/:id", authenticate, deleteBroker);
 export default router;

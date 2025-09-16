@@ -3,6 +3,33 @@ import { Parser } from "json2csv";
 import { Request, Response, NextFunction } from "express";
 import Project from "../../models/projects/projectModel";
 import ReferenceCategory from "../../models/referenceData/referenceModal";
+const BASE_URL = process.env.BASE_URL;
+
+async function hydrateProjectType(project_type: any) {
+    if (project_type && project_type.key) {
+        const category = await ReferenceCategory.findOne({ cate_key: "project_type" });
+        return {
+            ...project_type,
+            category: category?.category,
+            cate_key: category?.cate_key
+        };
+    } else if (typeof project_type === "string" || (project_type && project_type.toString)) {
+        const category = await ReferenceCategory.findOne({ cate_key: "project_type" });
+        let projectTypeObj = category?.items.find(
+            (item: any) =>
+                item.key === project_type ||
+                (item._id?.toString && item._id.toString() === project_type)
+        );
+        if (projectTypeObj) {
+            return {
+                ...projectTypeObj,
+                category: category?.category,
+                cate_key: category?.cate_key
+            };
+        }
+    }
+    return project_type;
+}
 
 export const createProject = async (
     req: Request,
@@ -50,8 +77,6 @@ export const createProject = async (
                 mediaArr = [];
             }
         }
-
-        // Handle uploaded files
         if (req.files && typeof req.files === "object") {
             const fileFields = [
                 "images",
@@ -110,8 +135,6 @@ export const createProject = async (
             const serialStr = serial.toString().padStart(4, "0");
             return `PRJ-${year}-${serialStr}`;
         }
-
-        // ...inside createProject...
         const code = project_code && project_code.trim() !== "" ? project_code : await generateProjectCode();
 
         const project = await Project.create({
@@ -163,9 +186,7 @@ export const getAllProjects = async (
         const search = (req.query.search as string) || "";
         const city = req.query.city as string;
         const state = req.query.state as string;
-        const project_type_key = req.query.project_type_key as string;
-
-
+        const project_type = req.query.project_type as string;
         const query: any = { is_deleted: false };
 
         if (search) {
@@ -177,13 +198,19 @@ export const getAllProjects = async (
         }
         if (city) query.city = city;
         if (state) query.state = state;
-        if (project_type_key) query["project_type.key"] = project_type_key;
+        if (project_type) query["project_type.key"] = project_type;
         const totalItems = await Project.countDocuments(query);
 
         const projects = await Project.find(query)
             .sort({ createdAt: -1 })
             .skip(skip)
-            .limit(limit);
+            .limit(limit)
+            .lean();
+
+        for (const project of projects) {
+            project.project_type = await hydrateProjectType(project.project_type);
+        }
+
 
         res.status(200).json({
             success: true,
@@ -215,6 +242,7 @@ export const getProjectById = async (
             });
             return;
         }
+        project.project_type = await hydrateProjectType(project.project_type);
         res.status(200).json({
             success: true,
             message: "Project fetched successfully",
@@ -285,7 +313,7 @@ export const updateProject = async (
                     (req.files as any)[field].forEach((file: any) => {
                         mediaArr.push({
                             _id: new mongoose.Types.ObjectId(),
-                            img_url: `http://localhost:5000/uploads/projects/${file.filename}`,
+                            img_url: `${BASE_URL}/uploads/projects/${file.filename}`,
                             doc_type: field,
                             description: file.originalname,
                             created_by: req.body.created_by,
@@ -329,6 +357,9 @@ export const updateProject = async (
             res.status(404).json({ success: false, message: "Project not found" });
             return;
         }
+        project.project_type = await hydrateProjectType(project.project_type);
+
+
         res.status(200).json({
             success: true,
             message: "Project updated successfully",
@@ -388,7 +419,6 @@ export const exportAllProjectsCSV = async (
             state: project.state,
             radius_meters: project.radius_meters,
             project_type: project.project_type?.name || "",
-            project_type_key: project.project_type?.key || "",
             status: project.status,
             is_active: project.is_active,
             is_deleted: project.is_deleted,

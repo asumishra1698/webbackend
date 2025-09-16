@@ -6,7 +6,7 @@ export interface IBrokerDocument {
     url: string;
     name: string;
     size: number;
-    _id?: string; // MongoDB will auto-generate this
+    _id?: string;
 }
 
 export interface IBroker extends Document {
@@ -37,6 +37,7 @@ export interface IBroker extends Document {
     updatedAt?: Date;
     total_visits?: number;
     visitor_count?: number;
+    is_deleted?: boolean;
 }
 
 const BrokerDocumentSchema = new Schema(
@@ -76,6 +77,7 @@ const BrokerSchema: Schema = new Schema(
         commission_structure: { type: [SchemaTypes.Mixed], default: [] },
         total_visits: { type: Number, default: 0 },
         visitor_count: { type: Number, default: 0 },
+        is_deleted: { type: Boolean, default: false },
     },
     { timestamps: true }
 );
