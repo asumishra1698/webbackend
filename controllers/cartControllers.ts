@@ -1,0 +1,85 @@
+import { Request, Response, NextFunction } from "express";
+import CartItem, { ICartItem } from "../models/cartItemModel";
+import Product from "../models/products/productModel";
+
+export const addToCart = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { userId, productId, quantity } = req.body;
+        if (!userId || !productId || !quantity) {
+            res.status(400).json({ message: "userId, productId, and quantity are required." });
+            return;
+        }
+        const product = await Product.findById(productId);
+        if (!product) {
+            res.status(404).json({ message: "Product not found." });
+            return;
+        }
+        let cartItem = await CartItem.findOne({ userId, productId });
+        if (cartItem) {
+            cartItem.quantity += quantity;
+            await cartItem.save();
+        } else {
+            cartItem = await CartItem.create({
+                userId,
+                productId,
+                name: product.name,
+                price: product.price,
+                quantity
+
+            });
+        }
+
+        res.json({ success: true, cartItem });
+    } catch (err) {
+        next(err);
+    }
+};
+
+export const getCart = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { userId } = req.query;
+        if (!userId) {
+            res.status(400).json({ message: "userId is required." });
+            return;
+        }
+        const cart = await CartItem.find({ userId });
+
+        // Add subtotal to each cart item
+        const cartWithSubtotal = cart.map(item => ({
+            ...item.toObject(),
+            subtotal: item.price * item.quantity
+        }));
+
+        res.json({ success: true, cart: cartWithSubtotal });
+    } catch (err) {
+        next(err);
+    }
+};
+
+export const removeFromCart = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { userId, productId } = req.body;
+        if (!userId || !productId) {
+            res.status(400).json({ message: "userId and productId are required." });
+        }
+        await CartItem.findOneAndDelete({ userId, productId });
+        res.json({ success: true, message: "Item removed from cart." });
+        return;
+    } catch (err) {
+        next(err);
+    }
+};
+
+export const clearCart = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { userId } = req.body;
+        if (!userId) {
+            res.status(400).json({ message: "userId is required." });
+        }
+        await CartItem.deleteMany({ userId });
+        res.json({ success: true, message: "Cart cleared." });
+        return;
+    } catch (err) {
+        next(err);
+    }
+};
