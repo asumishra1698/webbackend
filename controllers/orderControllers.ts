@@ -62,7 +62,6 @@ export const checkout = async (req: Request, res: Response, next: NextFunction) 
             paymentMethod
         });
         await CartItem.deleteMany({ userId });
-
         res.status(201).json({
             success: true,
             message: "Order placed successfully.",
