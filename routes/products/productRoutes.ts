@@ -46,16 +46,9 @@ router.post(
   duplicateProduct
 );
 
-// Get all products
 router.get("/", getAllProducts);
-
-// Get product by ID
-router.get("/:id", allAdmin, getProductById);
-
-// Export all products
+router.get("/:id", getProductById);
 router.get("/export/all", allAdmin, exportAllProducts);
-
-// Update product with images
 router.put(
   "/:id",
   allAdmin,
