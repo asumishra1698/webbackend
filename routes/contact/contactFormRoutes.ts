@@ -3,11 +3,11 @@ import {
   submitContactForm,
   getAllContacts,
 } from "../../controllers/contact/contactFormControllers";
-import { authenticate } from "../../middlewares/authMiddleware";
+import { allAdmin } from "../../config/permission";
 
 const router = express.Router();
 
 router.post("/submit", submitContactForm);
-router.get("/all", authenticate, getAllContacts);
+router.get("/all", allAdmin, getAllContacts);
 
 export default router;

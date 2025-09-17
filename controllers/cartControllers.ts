@@ -1,12 +1,19 @@
 import { Request, Response, NextFunction } from "express";
 import CartItem, { ICartItem } from "../models/cartItemModel";
 import Product from "../models/products/productModel";
+import User from "../models/auth/authModal";
+
 
 export const addToCart = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { userId, productId, quantity } = req.body;
         if (!userId || !productId || !quantity) {
             res.status(400).json({ message: "userId, productId, and quantity are required." });
+            return;
+        }
+        const user = await User.findById(userId);
+        if (!user || user.role?.key !== "customer") {
+            res.status(403).json({ message: "Only customers can use the cart." });
             return;
         }
         const product = await Product.findById(productId);
@@ -42,14 +49,16 @@ export const getCart = async (req: Request, res: Response, next: NextFunction) =
             res.status(400).json({ message: "userId is required." });
             return;
         }
+        const user = await User.findById(userId);
+        if (!user || user.role?.key !== "customer") {
+            res.status(403).json({ message: "Only customers can use the cart." });
+            return;
+        }
         const cart = await CartItem.find({ userId });
-
-        // Add subtotal to each cart item
         const cartWithSubtotal = cart.map(item => ({
             ...item.toObject(),
             subtotal: item.price * item.quantity
         }));
-
         res.json({ success: true, cart: cartWithSubtotal });
     } catch (err) {
         next(err);

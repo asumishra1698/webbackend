@@ -1,8 +1,7 @@
 import express from "express";
 import authController, { getAllSalesRms } from "../../controllers/auth/authControllers";
-import { authenticate } from "../../middlewares/authMiddleware";
+import { allRoles, allAdmin } from "../../config/permission";
 import { uploadProfilePic } from "../../middlewares/uploadMiddleware";
-
 const router = express.Router();
 
 router.post(
@@ -16,9 +15,9 @@ router.post("/login/verify-email-otp", authController.verifyEmailLoginOtp);
 
 router.post("/forgot-password", authController.forgotpassword);
 router.post("/reset-password", authController.resetpassword);
-router.get("/role", authenticate, authController.getRole);
-router.get("/all-users", authenticate, authController.getAllUsers);
-router.get("/profile", authenticate, authController.getProfile);
-router.get("/sales-rms", authenticate, getAllSalesRms);
+router.get("/role", allAdmin, authController.getRole);
+router.get("/all-users", allAdmin, authController.getAllUsers);
+router.get("/profile", allRoles, authController.getProfile);
+router.get("/sales-rms", allAdmin, getAllSalesRms);
 
 export default router;

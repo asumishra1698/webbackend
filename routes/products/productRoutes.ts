@@ -1,6 +1,6 @@
 import express from "express";
 import multer from "multer";
-import { authenticate } from "../../middlewares/authMiddleware";
+import { allAdmin } from "../../config/permission";
 import { uploadProductImages } from "../../middlewares/uploadMiddleware";
 import {
   createProduct,
@@ -19,7 +19,7 @@ const upload = multer({ dest: "uploads/" });
 // Create product with images
 router.post(
   "/",
-  authenticate,
+  allAdmin,
   uploadProductImages.fields([
     { name: "images", maxCount: 5 },
     { name: "thumbnail", maxCount: 1 },
@@ -30,7 +30,7 @@ router.post(
 // Bulk import products from CSV
 router.post(
   "/import/csv",
-  authenticate,
+  allAdmin,
   upload.single("file"),
   importProductsFromCSV
 );
@@ -38,7 +38,7 @@ router.post(
 // Duplicate product with images
 router.post(
   "/:id/duplicate",
-  authenticate,
+  allAdmin,
   uploadProductImages.fields([
     { name: "images", maxCount: 5 },
     { name: "thumbnail", maxCount: 1 },
@@ -50,15 +50,15 @@ router.post(
 router.get("/", getAllProducts);
 
 // Get product by ID
-router.get("/:id", authenticate, getProductById);
+router.get("/:id", allAdmin, getProductById);
 
 // Export all products
-router.get("/export/all", authenticate, exportAllProducts);
+router.get("/export/all", allAdmin, exportAllProducts);
 
 // Update product with images
 router.put(
   "/:id",
-  authenticate,
+  allAdmin,
   uploadProductImages.fields([
     { name: "images", maxCount: 5 },
     { name: "thumbnail", maxCount: 1 },
@@ -67,6 +67,6 @@ router.put(
 );
 
 // Delete product
-router.delete("/:id", authenticate, deleteProduct);
+router.delete("/:id", allAdmin, deleteProduct);
 
 export default router;

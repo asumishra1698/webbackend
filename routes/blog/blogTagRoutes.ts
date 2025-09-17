@@ -1,12 +1,12 @@
 import express from "express";
-import { authenticate } from "../../middlewares/authMiddleware";
+import { allAdmin } from "../../config/permission";
 import { createBlogTag, getAllBlogTags, updateBlogTag, deleteBlogTag } from "../../controllers/blog/blogTagController";
 
 const router = express.Router();
 
-router.post("/", authenticate, createBlogTag);
+router.post("/", allAdmin, createBlogTag);
 router.get("/", getAllBlogTags);
-router.put("/:id", authenticate, updateBlogTag);
-router.delete("/:id", authenticate, deleteBlogTag);
+router.put("/:id", allAdmin, updateBlogTag);
+router.delete("/:id", allAdmin, deleteBlogTag);
 
 export default router;

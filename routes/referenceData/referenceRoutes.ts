@@ -4,13 +4,13 @@ import {
   createReferenceCategory,
   softDeleteReferenceItem,
 } from "../../controllers/referenceData/referenceControllers";
-import { authenticate } from "../../middlewares/authMiddleware";
+import { allAdmin } from "../../config/permission";
 import { uploadReferenceIcon } from "../../middlewares/uploadMiddleware";
 
 const router = express.Router();
 
-router.get("/", authenticate, getAllReferenceCategories);
-router.post("/", uploadReferenceIcon.single("icon"), authenticate, createReferenceCategory);
-router.delete("/item/:item_id", softDeleteReferenceItem);
+router.get("/", allAdmin, getAllReferenceCategories);
+router.post("/", uploadReferenceIcon.single("icon"), allAdmin, createReferenceCategory);
+router.delete("/item/:item_id", allAdmin, softDeleteReferenceItem);
 
 export default router;

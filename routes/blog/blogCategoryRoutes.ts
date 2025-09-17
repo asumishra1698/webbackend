@@ -1,5 +1,5 @@
 import express from "express";
-import { authenticate } from "../../middlewares/authMiddleware";
+import { allAdmin } from "../../config/permission";
 import {
   createBlogCategory,
   getAllBlogCategories,
@@ -9,9 +9,9 @@ import {
 
 const router = express.Router();
 
-router.post("/", authenticate, createBlogCategory);
+router.post("/", allAdmin, createBlogCategory);
 router.get("/", getAllBlogCategories);
-router.put("/:id", authenticate, updateBlogCategory);
-router.delete("/:id", authenticate, deleteBlogCategory);
+router.put("/:id", allAdmin, updateBlogCategory);
+router.delete("/:id", allAdmin, deleteBlogCategory);
 
 export default router;

@@ -6,19 +6,19 @@ import {
   updateProductBrand,
   deleteProductBrand,
 } from "../../controllers/products/productBrandControllers";
-import { authenticate } from "../../middlewares/authMiddleware";
+import { allAdmin } from "../../config/permission";
 import { uploadBrandLogoImages } from "../../middlewares/uploadMiddleware";
 
 const router = express.Router();
 
 router.post(
   "/",
-  uploadBrandLogoImages.single("logo"), 
+  uploadBrandLogoImages.single("logo"),
   createProductBrand
 );
-router.get("/", authenticate, getAllProductBrands);
-router.get("/:id", authenticate, getProductBrandById);
-router.put("/:id", authenticate, updateProductBrand);
-router.delete("/:id", authenticate, deleteProductBrand);
+router.get("/", allAdmin, getAllProductBrands);
+router.get("/:id", allAdmin, getProductBrandById);
+router.put("/:id", allAdmin, updateProductBrand);
+router.delete("/:id", allAdmin, deleteProductBrand);
 
 export default router;

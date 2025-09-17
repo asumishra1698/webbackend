@@ -5,13 +5,13 @@ import {
     removeFromCart,
     clearCart
 } from "../controllers/cartControllers";
-import { authenticate } from "../middlewares/authMiddleware";
+import { allAdmin } from "../config/permission";
 
 const router = express.Router();
 
-router.post("/add", authenticate, addToCart);
-router.get("/", authenticate, getCart);
-router.post("/remove", authenticate, removeFromCart);
-router.post("/clear", authenticate, clearCart);
+router.post("/add", allAdmin, addToCart);
+router.get("/", allAdmin, getCart);
+router.post("/remove", allAdmin, removeFromCart);
+router.post("/clear", allAdmin, clearCart);
 
 export default router;

@@ -1,6 +1,6 @@
 import express from "express";
 import { createProject, deleteProjectMedia, exportAllProjectsCSV, getAllProjects, getProjectById, softDeleteProject, updateProject, updateProjectStatus } from "../../controllers/projects/projectControllers";
-import { authenticate } from "../../middlewares/authMiddleware";
+import { allAdmin } from "../../config/permission";
 import { uploadProjectMedia } from "../../middlewares/uploadMiddleware";
 const router = express.Router();
 
@@ -11,10 +11,10 @@ router.post("/", uploadProjectMedia.fields([
     { name: "brochure" },
     { name: "workThroughVideo" },
     { name: "floorPlanImg" }
-]), authenticate, createProject);
-router.get("/export/", authenticate, exportAllProjectsCSV);
-router.get("/", authenticate, getAllProjects);
-router.get("/:id", authenticate, getProjectById);
+]), allAdmin, createProject);
+router.get("/export/", allAdmin, exportAllProjectsCSV);
+router.get("/", allAdmin, getAllProjects);
+router.get("/:id", allAdmin, getProjectById);
 router.put(
     "/:id",
     uploadProjectMedia.fields([
@@ -25,12 +25,12 @@ router.put(
         { name: "workThroughVideo" },
         { name: "floorPlanImg" }
     ]),
-    authenticate,
+    allAdmin,
     updateProject
 );
-router.delete("/:id", authenticate, softDeleteProject);
-router.patch("/toggle-status/:id/active", authenticate, updateProjectStatus);
-router.delete("/:id/media/:mediaId", authenticate, deleteProjectMedia);
+router.delete("/:id", allAdmin, softDeleteProject);
+router.patch("/toggle-status/:id/active", allAdmin, updateProjectStatus);
+router.delete("/:id/media/:mediaId", allAdmin, deleteProjectMedia);
 
 
 export default router;

@@ -1,5 +1,5 @@
 import express from "express";
-import { authenticate } from "../../middlewares/authMiddleware";
+import { allAdmin } from "../../config/permission";
 import { uploadBlogImages } from "../../middlewares/uploadMiddleware";
 import {
   createPost,
@@ -14,7 +14,7 @@ const router = express.Router();
 
 router.post(
   "/",
-  authenticate,
+  allAdmin,
   uploadBlogImages.fields([
     { name: "featuredImage", maxCount: 1 },
     { name: "galleryImages", maxCount: 10 },
@@ -23,15 +23,15 @@ router.post(
 );
 router.get("/", getAllPosts);
 router.get("/:slug", getPostBySlug);
-router.delete("/:id", authenticate, deletePost);
+router.delete("/:id", allAdmin, deletePost);
 router.put(
   "/:id",
-  authenticate,
+  allAdmin,
   uploadBlogImages.fields([
     { name: "featuredImage", maxCount: 1 },
     { name: "galleryImages", maxCount: 10 },
   ]),
   updatePost
 );
-router.patch("/:id/status", authenticate, updatePostStatus);
+router.patch("/:id/status", allAdmin, updatePostStatus);
 export default router;

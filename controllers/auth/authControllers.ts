@@ -28,6 +28,7 @@ export const register = async (
       });
       return;
     }
+    
     let roleObj: any = null;
     if (roleCategory && role) {
       roleObj = roleCategory.items.find(

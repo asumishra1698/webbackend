@@ -6,13 +6,14 @@ import {
   updateProductTag,
   deleteProductTag,
 } from "../../controllers/products/productTagControllers";
+import { allAdmin } from "../../config/permission";
 
 const router = express.Router();
 
-router.post("/", createProductTag);
-router.get("/", getAllProductTags);
-router.get("/:id", getProductTagById);
-router.put("/:id", updateProductTag);
-router.delete("/:id", deleteProductTag);
+router.post("/", allAdmin, createProductTag);
+router.get("/", allAdmin, getAllProductTags);
+router.get("/:id", allAdmin, getProductTagById);
+router.put("/:id", allAdmin, updateProductTag);
+router.delete("/:id", allAdmin, deleteProductTag);
 
 export default router;

@@ -1,7 +1,7 @@
 import express from "express";
 import multer from "multer";
 import { createBroker, getAllBrokers, getBrokerById, updateBroker, deleteBroker, exportBrokersCSV } from "../../controllers/broker/brokerControllers";
-import { authenticate } from "../../middlewares/authMiddleware";
+import { allAdmin } from "../../config/permission";
 const router = express.Router();
 const upload = multer({ dest: "uploads/brokers/" });
 
@@ -19,14 +19,14 @@ const documentFields = [
 
 router.post(
     "/",
-    authenticate,
+    allAdmin,
     upload.fields(documentFields.map(name => ({ name, maxCount: 1 }))),
     createBroker
 );
-router.get("/", authenticate, getAllBrokers);
-router.get("/export/csv", authenticate, exportBrokersCSV);
-router.get("/:id", authenticate, getBrokerById);
-router.put("/:id", authenticate, upload.fields([
+router.get("/", allAdmin, getAllBrokers);
+router.get("/export/csv", allAdmin, exportBrokersCSV);
+router.get("/:id", allAdmin, getBrokerById);
+router.put("/:id", allAdmin, upload.fields([
     { name: "owner_photo", maxCount: 1 },
     { name: "aadhar_card", maxCount: 1 },
     { name: "pan_card", maxCount: 1 },
@@ -38,6 +38,5 @@ router.put("/:id", authenticate, upload.fields([
     { name: "agent_mou", maxCount: 1 }
 ]), updateBroker);
 
-// Delete broker
-router.delete("/:id", authenticate, deleteBroker);
+router.delete("/:id", allAdmin, deleteBroker);
 export default router;
