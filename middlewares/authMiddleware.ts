@@ -19,7 +19,7 @@ export const authenticate =
         const decoded: any = jwt.verify(token, process.env.JWT_SECRET as string);
         req.user = decoded;
         if (
-          allowedRoles.length === 0 || // If no roles specified, allow all authenticated users
+          allowedRoles.length === 0 ||
           (decoded.role?.key && allowedRoles.includes(decoded.role.key))
         ) {
           next();

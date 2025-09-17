@@ -30,9 +30,8 @@ export const addToCart = async (req: Request, res: Response, next: NextFunction)
                 userId,
                 productId,
                 name: product.name,
-                price: product.price,
+                price: product.salePrice,
                 quantity
-
             });
         }
 
@@ -54,12 +53,29 @@ export const getCart = async (req: Request, res: Response, next: NextFunction) =
             res.status(403).json({ message: "Only customers can use the cart." });
             return;
         }
-        const cart = await CartItem.find({ userId });
-        const cartWithSubtotal = cart.map(item => ({
-            ...item.toObject(),
-            subtotal: item.price * item.quantity
-        }));
-        res.json({ success: true, cart: cartWithSubtotal });
+
+        const cart = await CartItem.find({ userId }).lean();
+        const cartWithProduct = await Promise.all(
+            cart.map(async item => {
+                const product = await Product.findById(item.productId).lean();
+                let latestPrice = product?.salePrice ?? item.price;
+                if (product && item.price !== latestPrice) {
+                    await CartItem.updateOne(
+                        { _id: item._id },
+                        { $set: { price: latestPrice } }
+                    );
+                }
+                return {
+                    ...item,
+                    price: latestPrice,
+                    subtotal: latestPrice * item.quantity,
+                    imageUrl: product?.thumbnail
+                        ? `${process.env.BASE_URL || ""}/uploads/products/${product.thumbnail}`
+                        : ""
+                };
+            })
+        );
+        res.json({ success: true, cart: cartWithProduct });
     } catch (err) {
         next(err);
     }
