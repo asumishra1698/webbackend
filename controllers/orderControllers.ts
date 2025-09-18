@@ -40,7 +40,9 @@ export const checkout = async (req: Request, res: Response, next: NextFunction) 
             subtotal: item.price * item.quantity
         }));
 
-        const total = items.reduce((sum, item) => sum + item.subtotal, 0);
+        const subtotal = items.reduce((sum, item) => sum + item.subtotal, 0);
+        const tax = Math.round(subtotal * 0.18);
+        const total = subtotal + tax;
 
         const user = await User.findById(userId);
         if (user) {
