@@ -18,6 +18,10 @@ export interface IOrder extends Document {
     items: IOrderItem[];
     total: number;
     paymentMethod: "COD" | "Online";
+    paymentId?: string;
+    razorpayOrderId?: string;
+    razorpaySignature?: string;
+    paymentStatus?: "pending" | "paid" | "failed";
     createdAt: Date;
 }
 
@@ -39,6 +43,10 @@ const OrderSchema: Schema = new Schema({
     ],
     total: { type: Number, required: true },
     paymentMethod: { type: String, enum: ["COD", "Online"], required: true },
+    paymentId: { type: String },
+    razorpayOrderId: { type: String },
+    razorpaySignature: { type: String },
+    paymentStatus: { type: String, enum: ["pending", "paid", "failed"], default: "pending" },
     createdAt: { type: Date, default: Date.now }
 });
 

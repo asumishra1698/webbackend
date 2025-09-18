@@ -4,6 +4,7 @@ import Product from "../models/products/productModel";
 import User from "../models/auth/authModal";
 
 
+
 export const addToCart = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { userId, productId, quantity } = req.body;

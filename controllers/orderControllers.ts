@@ -59,7 +59,8 @@ export const checkout = async (req: Request, res: Response, next: NextFunction) 
             customer: { name, number, address },
             items,
             total,
-            paymentMethod
+            paymentMethod,
+            paymentStatus: "pending"
         });
         await CartItem.deleteMany({ userId });
         res.status(201).json({
@@ -104,7 +105,9 @@ export const verifyPayment = async (req: Request, res: Response, next: NextFunct
             total,
             paymentMethod: "Online",
             paymentId: razorpay_payment_id,
-            razorpayOrderId: razorpay_order_id
+            razorpayOrderId: razorpay_order_id,
+            razorpaySignature: razorpay_signature,
+            paymentStatus: "paid"
         });
         await CartItem.deleteMany({ userId });
 
@@ -113,6 +116,24 @@ export const verifyPayment = async (req: Request, res: Response, next: NextFunct
             message: "Order placed successfully.",
             order
         });
+    } catch (err) {
+        next(err);
+    }
+};
+
+export const getOrderById = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { orderId } = req.params;
+        if (!orderId) {
+            res.status(400).json({ message: "orderId is required." });
+            return;
+        }
+        const order = await Order.findById(orderId);
+        if (!order) {
+            res.status(404).json({ message: "Order not found." });
+            return;
+        }
+        res.json({ success: true, order });
     } catch (err) {
         next(err);
     }
