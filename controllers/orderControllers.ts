@@ -84,3 +84,36 @@ export const getOrders = async (req: Request, res: Response, next: NextFunction)
         next(err);
     }
 };
+
+export const verifyPayment = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { razorpay_order_id, razorpay_payment_id, razorpay_signature, userId, name, number, email, address, items, total } = req.body;
+        const generated_signature = crypto
+            .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET as string)
+            .update(razorpay_order_id + "|" + razorpay_payment_id)
+            .digest("hex");
+
+        if (generated_signature !== razorpay_signature) {
+            res.status(400).json({ success: false, message: "Payment verification failed" });
+            return;
+        }
+        const order = await Order.create({
+            userId,
+            customer: { name, number, email, address },
+            items,
+            total,
+            paymentMethod: "Online",
+            paymentId: razorpay_payment_id,
+            razorpayOrderId: razorpay_order_id
+        });
+        await CartItem.deleteMany({ userId });
+
+        res.status(201).json({
+            success: true,
+            message: "Order placed successfully.",
+            order
+        });
+    } catch (err) {
+        next(err);
+    }
+};
