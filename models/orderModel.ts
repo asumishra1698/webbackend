@@ -13,7 +13,12 @@ export interface IOrder extends Document {
     customer: {
         name: string;
         number: string;
-        address: string;
+        address: {
+            line1: string;
+            city: string;
+            state: string;
+            zip: string;
+        };
     };
     items: IOrderItem[];
     total: number;
@@ -30,7 +35,12 @@ const OrderSchema: Schema = new Schema({
     customer: {
         name: { type: String, required: true },
         number: { type: String, required: true },
-        address: { type: String, required: true },
+        address: {
+            line1: { type: String, required: true },
+            city: { type: String, required: true },
+            state: { type: String, required: true },
+            zip: { type: String, required: true }
+        }
     },
     items: [
         {

@@ -12,8 +12,18 @@ const razorpay = new Razorpay({
 export const checkout = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { userId, name, number, address, paymentMethod } = req.body;
-        if (!userId || !name || !number || !address || !paymentMethod) {
-            res.status(400).json({ message: "userId, name, number, address, and paymentMethod are required." });
+        if (
+            !userId ||
+            !name ||
+            !number ||
+            !address ||
+            !address.line1 ||
+            !address.city ||
+            !address.state ||
+            !address.zip ||
+            !paymentMethod
+        ) {
+            res.status(400).json({ message: "userId, name, number, address (with line1, city, state, zip), and paymentMethod are required." });
             return;
         }
         const cartItems = await CartItem.find({ userId });
