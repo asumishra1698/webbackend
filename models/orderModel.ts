@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document } from "mongoose";
+import authModel from "./auth/authModal";
 
 interface IOrderItem {
     productId: string;

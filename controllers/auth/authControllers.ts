@@ -13,7 +13,7 @@ export const register = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { name, email, mobile, password, role, dateOfBirth, department, gender } = req.body;
+    const { name, email, mobile, password, role, dateOfBirth, department, gender, addresses } = req.body;
     if (!name || !email || !password || !role || !dateOfBirth || !mobile || !gender || !department) {
       res.status(400).json({ message: "All fields are required" });
       return;
@@ -28,7 +28,7 @@ export const register = async (
       });
       return;
     }
-    
+
     let roleObj: any = null;
     if (roleCategory && role) {
       roleObj = roleCategory.items.find(
@@ -120,6 +120,7 @@ export const register = async (
       department_id: departmentObj?._id || "",
       gender,
       user_guid,
+      addresses: Array.isArray(addresses) ? addresses : undefined,
     });
 
     try {
@@ -164,6 +165,7 @@ export const register = async (
         department: user.department,
         department_id: user.department_id,
         gender: user.gender,
+        addresses: user.addresses,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
       },
@@ -570,9 +572,10 @@ export const getProfile = async (
         name: user.name,
         email: user.email,
         mobile: user.mobile,
-        role: user.role, // full reference object
+        role: user.role,
         username: user.username,
         profilePic: user.profilePic,
+        addresses: user.addresses,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
       },

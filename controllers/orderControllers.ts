@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import User from "../models/auth/authModal";
 import CartItem from "../models/cartItemModel";
 import Order from "../models/orderModel";
 import Razorpay from "razorpay";
@@ -40,6 +41,22 @@ export const checkout = async (req: Request, res: Response, next: NextFunction) 
         }));
 
         const total = items.reduce((sum, item) => sum + item.subtotal, 0);
+
+        const user = await User.findById(userId);
+        if (user) {
+            const addressExists = user.addresses?.some(a =>
+                a.line1 === address.line1 &&
+                a.city === address.city &&
+                a.state === address.state &&
+                a.zip === address.zip
+            );
+            if (!addressExists) {
+                user.addresses = user.addresses || [];
+                user.addresses.push(address);
+                await user.save();
+            }
+        }
+
         if (paymentMethod === "Online") {
             const razorpayOrder = await razorpay.orders.create({
                 amount: total * 100,

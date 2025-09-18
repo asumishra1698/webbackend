@@ -32,6 +32,14 @@ export interface IUser extends Document {
   updatedAt?: Date;
   __v?: number;
   deletedAt?: Date;
+  addresses?: Array<{
+    line1: string;
+    city: string;
+    state: string;
+    zip: string;
+    label?: string;
+    isDefault?: boolean;
+  }>;
 }
 
 const UserSchema: Schema = new Schema(
@@ -67,6 +75,16 @@ const UserSchema: Schema = new Schema(
     updatedAt: { type: Date, default: Date.now },
     __v: { type: Number, default: 0 },
     deletedAt: { type: Date },
+    addresses: [
+      {
+        line1: { type: String, required: true },
+        city: { type: String, required: true },
+        state: { type: String, required: true },
+        zip: { type: String, required: true },
+        label: { type: String, default: "Home" },
+        isDefault: { type: Boolean, default: false }
+      }
+    ]
   },
   { timestamps: true }
 );
