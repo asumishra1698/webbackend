@@ -87,6 +87,7 @@ export const removeFromCart = async (req: Request, res: Response, next: NextFunc
         const { userId, productId } = req.body;
         if (!userId || !productId) {
             res.status(400).json({ message: "userId and productId are required." });
+            return;
         }
         await CartItem.findOneAndDelete({ userId, productId });
         res.json({ success: true, message: "Item removed from cart." });
@@ -109,3 +110,5 @@ export const clearCart = async (req: Request, res: Response, next: NextFunction)
         next(err);
     }
 };
+
+
